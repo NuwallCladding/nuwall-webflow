@@ -985,3 +985,186 @@ select {
     object-fit: cover !important;
     display: block !important;
   }
+
+/* ============================================================
+     COLOUR PAGE
+     Environment hover-expand cards, tab triggers, and the colour
+     palette flex layout used by the colour page's tabs component.
+     ============================================================ */
+
+/* NOTE: these two rule sets both target .environment-item and were both
+   live in the original page embed; kept in source order since the second
+   block's values (0.7s transition, 45% gradient) win the cascade for the
+   properties they share with the first (0.8s, 50%). */
+.color-environments-wrapper .environment-item {
+  flex: 1 1 0% !important;
+  transition: flex 0.8s cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.color-environments-wrapper .environment-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease 0s;
+  pointer-events: none;
+}
+.color-environments-wrapper .environment-item .content {
+  opacity: 0;
+  transition: opacity 0.1s cubic-bezier(0.39, 0.575, 0.565, 1) 0s;
+}
+.color-environments-wrapper:hover .environment-item:not(:hover) {
+  flex: 0.5 1 0% !important;
+}
+.color-environments-wrapper:hover .environment-item:hover {
+  flex: 1.5 1 0% !important;
+}
+.color-environments-wrapper:hover .environment-item:hover::after {
+  opacity: 1;
+  transition-delay: 0.5s;
+}
+.color-environments-wrapper:hover .environment-item:hover .content {
+  opacity: 1;
+  transition: opacity 0.5s cubic-bezier(0.39, 0.575, 0.565, 1) 0s;
+  transition-delay: 0.6s;
+}
+
+/* ── Grid & Container Query ── */
+.grid-wrapper {
+  container-type: inline-size;
+}
+.grid-12col {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(1rem, 1fr));
+}
+@container (max-width: 1100px) {
+  .grid-12col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Environment Cards ── */
+.color-environments-wrapper .environment-item {
+  flex: 1 1 0% !important;
+  transition: flex 0.7s cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.color-environments-wrapper .environment-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) 0s;
+  pointer-events: none;
+}
+.color-environments-wrapper .environment-item .card-details {
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) 0s;
+}
+.color-environments-wrapper:hover .environment-item:not(:hover) {
+  flex: 0.5 1 0% !important;
+}
+.color-environments-wrapper:hover .environment-item:hover {
+  flex: 1.5 1 0% !important;
+}
+.color-environments-wrapper:hover .environment-item:hover::after,
+.color-environments-wrapper:hover .environment-item:hover .card-details {
+  opacity: 1;
+  transition-delay: 0.7s;
+}
+
+@media (max-width: 767px) {
+  .color-environments-wrapper {
+    flex-direction: column !important;
+    height: 100vh !important;
+  }
+
+  .color-environments-wrapper .environment-item::after {
+    height: 100%;
+    width: 45%;
+    right: 0;
+    left: auto;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.8), transparent);
+  }
+}
+
+/* ── Tab Triggers ── */
+.tab-trigger-item .underline {
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+  transition:
+    transform 600ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 600ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.tab-trigger-item h4 {
+  opacity: 0.3;
+  transition: opacity 600ms ease;
+}
+.tab-trigger-item:hover .underline,
+.tab-trigger-item.is-active .underline {
+  transform: scaleX(1);
+  opacity: 1;
+  transition:
+    transform 700ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 700ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.tab-trigger-item:hover h4,
+.tab-trigger-item.is-active h4 {
+  opacity: 1;
+  transition: opacity 700ms ease;
+}
+
+/* ── Colour Palette Flex Layout ── */
+.colour-environment-colours-flex {
+  display: flex !important;
+}
+
+.colour-color-palette-item {
+  flex: 1 1 0% !important;
+  position: relative;
+  z-index: 1;
+  margin-left: -55px;
+  /* ease-out (not the old cubic-bezier) settles decisively instead of
+     crawling through a long, slow tail — that lingering crawl on a
+     textured swatch read as a "zoom" right at the end of the hover-open. */
+  transition:
+    flex-grow 0.6s ease-out,
+    z-index 0s 0.6s !important;
+}
+
+.colour-color-palette-item:hover {
+  transition:
+    flex 0.6s ease-out,
+    z-index 0s 0s;
+}
+
+.colour-environment-colours-flex:hover .colour-color-palette-item:not(:hover) {
+  flex: 0.8 1 0% !important;
+}
+.colour-environment-colours-flex:hover .colour-color-palette-item:hover {
+  flex: 1.5 1 0% !important;
+}
+
+.color-palette:has(.is-light-color) .color-name-wrapper h6 {
+  color: var(--_brand-colors---brand-black);
+}
+
+@keyframes paletteIn {
+  from {
+    opacity: 0;
+    transform: translateX(0rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
