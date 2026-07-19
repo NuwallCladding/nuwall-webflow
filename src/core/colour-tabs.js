@@ -31,10 +31,10 @@ export function initColourTabs() {
         content.style.opacity = '1';
 
         // Stack the colour swatches on top of the last swatch's resting
-        // spot, then slide each one into its own resting slot, staggered
-        // left-to-right. (A plain fade-in-place let the swatch underneath
-        // show through while the new colour was still fading in — sliding
-        // fully in from the last swatch's position avoids that.)
+        // spot, then slide each one into its own resting slot, all at once.
+        // (A plain fade-in-place let the swatch underneath show through
+        // while the new colour was still fading in — sliding fully in from
+        // the last swatch's position avoids that.)
         // A tab panel can hold several colour rows (one per environment
         // card), so swatches are grouped by the row they actually belong
         // to and measured against that row's own last swatch.
@@ -71,12 +71,8 @@ export function initColourTabs() {
           });
 
           requestAnimationFrame(() => {
-            swatches.forEach((el, index) => {
-              el.style.setProperty(
-                'transition',
-                `opacity 700ms ease 700ms, transform 700ms ease ${delay}ms`,
-                'important'
-              );
+            swatches.forEach((el) => {
+              el.style.setProperty('transition', 'opacity 700ms ease, transform 700ms ease', 'important');
               el.style.setProperty('opacity', '1', 'important');
               el.style.setProperty('transform', 'translateX(0)', 'important');
             });
