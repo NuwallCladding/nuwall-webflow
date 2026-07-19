@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node scripts/build.js && echo Use ENTRY=global vite build --watch for single-entry watch",
     "build:css": "node scripts/build-css.js",
-    "build": "npm run build:css && node scripts/build.js",
+    "build": "node scripts/build.js && npm run build:css",
     "clean": "rimraf dist",
     "release": "npm run build && node scripts/release.js"
   },
