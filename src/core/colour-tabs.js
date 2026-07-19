@@ -72,10 +72,9 @@ export function initColourTabs() {
 
           requestAnimationFrame(() => {
             swatches.forEach((el, index) => {
-              const delay = index * 150;
               el.style.setProperty(
                 'transition',
-                `opacity 700ms ease ${delay}ms, transform 700ms ease ${delay}ms`,
+                `opacity 700ms ease 700ms, transform 700ms ease ${delay}ms`,
                 'important'
               );
               el.style.setProperty('opacity', '1', 'important');
