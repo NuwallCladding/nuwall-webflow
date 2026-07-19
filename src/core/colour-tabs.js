@@ -39,7 +39,7 @@ export function initColourTabs() {
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               el.style.transition = 'opacity 700ms ease, transform 700ms ease';
-              el.style.transitionDelay = index * 200 + 'ms';
+              el.style.transitionDelay = '0ms';
               el.style.opacity = '1';
               el.style.transform = 'translateY(0)';
             });
@@ -51,7 +51,7 @@ export function initColourTabs() {
           palette.style.animation = 'none';
           void palette.offsetHeight; // force reflow so the animation restarts
           const delay = i * 0.2;
-          palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) ${delay}s forwards`;
+          palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) 0s forwards`;
         });
       } else {
         swatches.forEach((el) => {
