@@ -30,16 +30,9 @@ export function initColourTabs() {
         content.style.visibility = 'visible';
         content.style.opacity = '1';
 
-        // Stack the colour swatches on top of the last swatch's resting
-        // spot, then slide each one into its own resting slot, all at once.
-        // (A plain fade-in-place let the swatch underneath show through
-        // while the new colour was still fading in — sliding fully in from
-        // the last swatch's position avoids that.)
-        // A tab panel can hold several colour rows (one per environment
-        // card), so swatches are grouped by the row they actually belong
-        // to and measured against that row's own last swatch.
+        // Fade the whole set of swatches in together.
         //
-        // Styles are forced with `important` priority: this component's
+        // Opacity is forced with `important` priority: this component's
         // own CSS sets `transition: ... !important` on .colour-color-palette-item
         // for its hover effect, which silently wins over a plain (non-
         // important) inline transition and would otherwise block this
@@ -47,34 +40,13 @@ export function initColourTabs() {
         swatches.forEach((el) => {
           el.style.setProperty('transition', 'none', 'important');
           el.style.setProperty('opacity', '0', 'important');
-          el.style.setProperty('transform', 'translateX(0)', 'important');
         });
 
         requestAnimationFrame(() => {
-          const rowGroups = new Map();
-          swatches.forEach((el) => {
-            const row = el.closest('.colour-environment-colours-flex') || content;
-            if (!rowGroups.has(row)) rowGroups.set(row, []);
-            rowGroups.get(row).push(el);
-          });
-
-          const offsetByEl = new Map();
-          rowGroups.forEach((els) => {
-            const lastRight = els[els.length - 1].getBoundingClientRect().right;
-            els.forEach((el) => {
-              offsetByEl.set(el, lastRight - el.getBoundingClientRect().right);
-            });
-          });
-
-          swatches.forEach((el) => {
-            el.style.setProperty('transform', `translateX(${offsetByEl.get(el)}px)`, 'important');
-          });
-
           requestAnimationFrame(() => {
             swatches.forEach((el) => {
-              el.style.setProperty('transition', 'opacity 700ms ease, transform 700ms ease', 'important');
+              el.style.setProperty('transition', 'opacity 700ms ease', 'important');
               el.style.setProperty('opacity', '1', 'important');
-              el.style.setProperty('transform', 'translateX(0)', 'important');
             });
           });
         });
@@ -90,7 +62,6 @@ export function initColourTabs() {
         swatches.forEach((el) => {
           el.style.setProperty('transition', 'none', 'important');
           el.style.setProperty('opacity', '0', 'important');
-          el.style.setProperty('transform', 'translateX(0)', 'important');
         });
         content.style.visibility = 'hidden';
         content.style.opacity = '0';
