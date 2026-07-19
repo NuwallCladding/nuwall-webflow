@@ -30,12 +30,14 @@ export function initColourTabs() {
         content.style.visibility = 'visible';
         content.style.opacity = '1';
 
-        // Stack the colour swatches at the far right of the row, then slide
-        // each one left into its resting slot, staggered left-to-right.
+        // Stack the colour swatches at the far right of their row, then
+        // slide each one left into its resting slot, staggered left-to-right.
         // (A plain fade-in-place let the swatch underneath show through
         // while the new colour was still fading in — sliding fully in from
         // off to the right avoids that.)
-        const row = content.querySelector('.colour-environment-colours-flex') || content;
+        // A tab panel can hold several colour rows (one per environment
+        // card), so each swatch's slide distance is measured against the
+        // right edge of the row it actually belongs to, not the panel.
         swatches.forEach((el) => {
           el.style.transition = 'none';
           el.style.opacity = '0';
@@ -43,8 +45,12 @@ export function initColourTabs() {
         });
 
         requestAnimationFrame(() => {
-          const rowRight = row.getBoundingClientRect().right;
-          const offsets = Array.from(swatches).map((el) => rowRight - el.getBoundingClientRect().right);
+          const rowRights = new Map();
+          const offsets = Array.from(swatches).map((el) => {
+            const row = el.closest('.colour-environment-colours-flex') || content;
+            if (!rowRights.has(row)) rowRights.set(row, row.getBoundingClientRect().right);
+            return rowRights.get(row) - el.getBoundingClientRect().right;
+          });
 
           swatches.forEach((el, index) => {
             el.style.transform = `translateX(${offsets[index]}px)`;

@@ -53,7 +53,7 @@ Pin to the tag, never `@latest` or a branch — jsDelivr caches those and you'll
 **Global JavaScript** (Site Settings → Custom Code → Footer):
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/yourname/webflow-scripts@v1.0.0/dist/global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/NuwallCladding/nuwall-webflow@1.0.2/dist/colour-page.min.js"></script>
 ```
 
 **Global CSS** (Site Settings → Custom Code → Head):
