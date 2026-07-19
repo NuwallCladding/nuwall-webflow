@@ -1,0 +1,48 @@
+name: build
+
+# Builds dist/ in CI and commits it back, so the artifacts served by jsDelivr
+# are always CI-built (not whatever was on someone's laptop).
+#
+# Two modes:
+#   - Push to main: rebuild and commit dist/ if it changed.
+#   - Push a tag (v*): rebuild, commit, and the tag now points at fresh dist/.
+#
+# Workflow to cut a release:
+#   1. bump "version" in package.json, commit, push to main
+#   2. git tag v1.2.3 && git push --tags
+#   3. jsDelivr serves .../gh/user/repo@v1.2.3/dist/*.min.js
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Commit dist if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist -f
+          if git diff --staged --quiet; then
+            echo "No dist changes."
+          else
+            git commit -m "ci: build dist [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi

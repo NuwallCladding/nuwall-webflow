@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.DS_Store
+.vite/
+
+# NOTE: dist/ is intentionally NOT ignored. jsDelivr serves from git tags,
+# so the built files must be committed. CI rebuilds and commits them.

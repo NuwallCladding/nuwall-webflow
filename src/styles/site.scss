@@ -1,0 +1,971 @@
+@use "swiper/swiper-bundle.css";
+@use "sass:color";
+
+// Site-level styles for Nu-Wall Webflow.
+// Add your custom SCSS here and publish the generated dist/site.min.css file.
+html {
+  scroll-behavior: smooth;
+}
+$body-bg: #ffffff;
+$text: #111111;
+$link: #0055ff;
+$link-hover: color.scale($link, $lightness: -20%);
+
+html {
+  box-sizing: border-box;
+  font-size: 16px;
+}
+/* ── Reset ── */
+.w-richtext:before,
+.w-richtext:after {
+  content: none !important;
+}
+.content-stack > * {
+  margin: 0;
+}
+.rich-text-block,
+.w-richtext {
+  padding: 0;
+  margin: 0;
+}
+.rich-text-block:has(> p) p,
+.w-richtext:has(> p) p,
+.paragraph-stack:has(> p) p {
+  margin-bottom: 14px;
+}
+.rich-text-block:has(> .large--body) p,
+.w-richtext:has(> .large--body) p {
+  margin-bottom: 24px;
+}
+.w-richtext > p:last-child,
+.rich-text-block > p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Spacing tokens ── */
+.content-stack {
+  --space-1: 5px;
+  --space-2: 10px;
+  --space-3: 15px;
+  --space-4: 20px;
+  --space-5: 25px;
+  --space-6: 30px;
+  --space-7: 35px;
+  --space-8: 40px;
+  --space-9: 45px;
+  --space-10: 50px;
+  --space-11: 60px;
+}
+
+/* ── Cap-height trim ── */
+.content-stack > h1,
+.content-stack > .heading-wrapper > h1 {
+  --cap-trim: 0.24em;
+  --base-trim: 0.065em;
+}
+
+.content-stack > h2,
+.content-stack > .heading-wrapper > h2 {
+  --cap-trim: 0.16em;
+  --base-trim: 0.14em;
+}
+
+.content-stack > h3,
+.content-stack > .heading-wrapper > h3 {
+  --cap-trim: 0.22em;
+  --base-trim: 0.1em;
+}
+
+.content-stack > h4,
+.content-stack > .heading-wrapper > h4 {
+  --cap-trim: 0.24em;
+  --base-trim: 0.2em;
+}
+
+.content-stack > h5,
+.content-stack > .heading-wrapper > h5 {
+  --cap-trim: 0.1em;
+  --base-trim: 0.1em;
+}
+
+.content-stack > .large--body {
+  --cap-trim: 0.15em;
+  --base-trim: 0.15em;
+}
+
+.content-stack > :is(h1, h2, h3, h4)::before,
+.content-stack > .heading-wrapper > :is(h1, h2, h3, h4)::before {
+  content: "";
+  display: table;
+  margin-bottom: calc(var(--cap-trim) * -1);
+}
+.content-stack > :is(h1, h2, h3, h4)::after,
+.content-stack > .heading-wrapper > :is(h1, h2, h3, h4)::after {
+  content: "";
+  display: table;
+  margin-top: calc(var(--base-trim) * -1);
+}
+
+/* ── Default spacing ── */
+.content-stack > :is(h5, h6) {
+  margin-bottom: var(--space-6);
+}
+.content-stack > h2,
+.content-stack > .heading-wrapper:has(> h2) {
+  margin-bottom: var(--space-9);
+}
+.content-stack > h3,
+.content-stack > .heading-wrapper:has(> h3) {
+  margin-bottom: var(--space-7);
+}
+.content-stack > h4,
+.content-stack > .heading-wrapper:has(> h4) {
+  margin-bottom: var(--space-5);
+}
+.content-stack > .paragraph-stack,
+.content-stack > p {
+  margin-bottom: var(--space-6);
+}
+.content-stack > :is(a):has(+ div > img) {
+  margin-bottom: var(--space-8);
+}
+
+/* ── Adjacency overrides ── */
+.content-stack > :is(h5, h6):has(+ h1),
+.content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h1)) {
+  margin-bottom: var(--space-5);
+}
+.content-stack > :is(h5, h6):has(+ h2),
+.content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h2)) {
+  margin-bottom: var(--space-6);
+}
+.content-stack > :is(h5, h6):has(+ h3),
+.content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h3)) {
+  margin-bottom: var(--space-7);
+}
+.content-stack > :is(h5, h6):has(+ h4),
+.content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h4)) {
+  margin-bottom: var(--space-4);
+}
+.content-stack > h1:has(+ h2),
+.content-stack > .heading-wrapper:has(> h1):has(+ h2),
+.content-stack > .heading-wrapper:has(> h1):has(+ .heading-wrapper:has(> h2)) {
+  margin-bottom: var(--space-5);
+}
+.content-stack > .paragraph-stack:has(+ h4),
+.content-stack > p:has(+ h4),
+.content-stack > .paragraph-stack:has(+ .heading-wrapper:has(> h4)),
+.content-stack > p:has(+ .heading-wrapper:has(> h4)) {
+  margin-bottom: var(--space-8);
+}
+.content-stack > :is(h5, h6):has(+ p),
+.content-stack > :is(h5, h6):has(+ .paragraph-stack) {
+  margin-bottom: var(--space-6);
+}
+.content-stack > h2:has(+ .large--body) {
+  margin-bottom: var(--space-9);
+}
+.content-stack > h4:has(+ p),
+.content-stack > h4:has(+ .rich-text-block),
+.content-stack > h4:has(+ .paragraph-stack),
+.content-stack > h4:has(+ .w-richtext) {
+  margin-bottom: var(--space-6);
+}
+.content-stack > h2:has(+ p),
+.content-stack > h2:has(+ .paragraph-stack) {
+  margin-bottom: var(--space-9);
+}
+.content-stack > p:has(+ h2) {
+  margin-bottom: var(--space-10);
+}
+.content-stack > .rich-text-block:has(> p) {
+  margin-bottom: var(--space-9);
+}
+
+/* ── Last child reset ── */
+.content-stack > *:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 991px) {
+  /* ── Cap-height trim override (h2 only) ── */
+  .content-stack > h2,
+  .content-stack > .heading-wrapper > h2 {
+    --cap-trim: 0.15em;
+  }
+
+  /* ── Default spacing ── */
+  .content-stack > :is(h5, h6) {
+    margin-bottom: var(--space-3);
+  }
+  .content-stack > h2,
+  .content-stack > .heading-wrapper:has(> h2) {
+    margin-bottom: var(--space-4);
+  }
+  .content-stack > h3,
+  .content-stack > .heading-wrapper:has(> h3) {
+    margin-bottom: var(--space-3);
+  }
+  .content-stack > h4,
+  .content-stack > .heading-wrapper:has(> h4) {
+    margin-bottom: var(--space-4);
+  }
+  .content-stack > .paragraph-stack,
+  .content-stack > p {
+    margin-bottom: var(--space-6);
+  }
+
+  /* ── Adjacency overrides ── */
+  .content-stack > :is(h5, h6):has(+ h1),
+  .content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h1)) {
+    margin-bottom: var(--space-1);
+  }
+  .content-stack > :is(h5, h6):has(+ h2),
+  .content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h2)) {
+    margin-bottom: var(--space-6);
+  }
+  .content-stack > :is(h5, h6):has(+ h3),
+  .content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h3)) {
+    margin-bottom: var(--space-7);
+  }
+  .content-stack > :is(h5, h6):has(+ h4),
+  .content-stack > :is(h5, h6):has(+ .heading-wrapper:has(> h4)) {
+    margin-bottom: var(--space-1);
+  }
+  .content-stack > h1:has(+ h2),
+  .content-stack > .heading-wrapper:has(> h1):has(+ h2),
+  .content-stack
+    > .heading-wrapper:has(> h1):has(+ .heading-wrapper:has(> h2)) {
+    margin-bottom: var(--space-5);
+  }
+  .content-stack > .paragraph-stack:has(+ h4),
+  .content-stack > p:has(+ h4),
+  .content-stack > .paragraph-stack:has(+ .heading-wrapper:has(> h4)),
+  .content-stack > p:has(+ .heading-wrapper:has(> h4)) {
+    margin-bottom: var(--space-6);
+  }
+  .content-stack > :is(h5, h6):has(+ p),
+  .content-stack > :is(h5, h6):has(+ .paragraph-stack) {
+    margin-bottom: var(--space-4);
+  }
+  .content-stack > h2:has(+ .large--body) {
+    margin-bottom: var(--space-6);
+  }
+  .content-stack > h4:has(+ p),
+  .content-stack > h4:has(+ .rich-text-block),
+  .content-stack > h4:has(+ .paragraph-stack),
+  .content-stack > h4:has(+ .w-richtext) {
+    margin-bottom: var(--space-6);
+  }
+  .content-stack > h2:has(+ p),
+  .content-stack > h2:has(+ .paragraph-stack) {
+    margin-bottom: var(--space-6);
+  }
+  .content-stack > p:has(+ h2) {
+    margin-bottom: var(--space-6);
+  }
+  .content-stack > .rich-text-block:has(> p) {
+    margin-bottom: var(--space-6);
+  }
+
+  /* ── Last child reset ── */
+  .content-stack > *:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* ============================================================
+     PAGE LOAD
+     Fade body in once DOM is ready
+     ============================================================ */
+
+body {
+  opacity: 0;
+}
+
+body.is-loaded {
+  opacity: 1;
+  transition: opacity 400ms ease;
+}
+
+/* Hidden by default */
+[data-persona-show="professional"],
+[data-persona-show="homeowner"] {
+  display: none !important;
+}
+
+/* Block */
+[data-persona="professional"] [data-persona-show="professional"],
+[data-persona="professional"] [data-persona-show="both"],
+[data-persona="homeowner"] [data-persona-show="homeowner"],
+[data-persona="homeowner"] [data-persona-show="both"] {
+  display: block !important;
+}
+
+/* Flex */
+[data-persona="professional"]
+  [data-persona-show="professional"][data-persona-display="flex"],
+[data-persona="professional"]
+  [data-persona-show="both"][data-persona-display="flex"],
+[data-persona="homeowner"]
+  [data-persona-show="homeowner"][data-persona-display="flex"],
+[data-persona="homeowner"]
+  [data-persona-show="both"][data-persona-display="flex"] {
+  display: flex !important;
+}
+
+/* Grid */
+[data-persona="professional"]
+  [data-persona-show="professional"][data-persona-display="grid"],
+[data-persona="professional"]
+  [data-persona-show="both"][data-persona-display="grid"],
+[data-persona="homeowner"]
+  [data-persona-show="homeowner"][data-persona-display="grid"],
+[data-persona="homeowner"]
+  [data-persona-show="both"][data-persona-display="grid"] {
+  display: grid !important;
+}
+
+/* ============================================================
+     PERSONA — LABEL ANIMATION
+     Slides opposite persona label in/out on the switch trigger
+     ============================================================ */
+.persona-label_wrap {
+  overflow: hidden;
+  position: relative;
+  height: 1.4em;
+}
+.persona-label_text {
+  transition:
+    transform 0.35s ease,
+    opacity 0.35s ease;
+}
+.persona-label_text[data-persona-label="professional"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Viewing as professional → show "Homeowner" */
+[data-persona="professional"]
+  .persona-label_text[data-persona-label="homeowner"] {
+  transform: translateY(0);
+  opacity: 1;
+}
+[data-persona="professional"]
+  .persona-label_text[data-persona-label="professional"] {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+/* Viewing as homeowner → show "Professional" */
+[data-persona="homeowner"] .persona-label_text[data-persona-label="homeowner"] {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+[data-persona="homeowner"]
+  .persona-label_text[data-persona-label="professional"] {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ============================================================
+     PERSONA — SWITCH TRANSITIONS
+     Page fade and toggle pulse during persona change
+     ============================================================ */
+/* Full page fade on persona switch */
+.main-wrapper {
+  transition: opacity 0.3s ease;
+}
+.main-wrapper.is-persona-fading {
+  opacity: 0;
+}
+
+/* Switch trigger — pulse while switching */
+[data-persona-trigger="switch"] {
+  transition: opacity 0.2s ease;
+}
+[data-persona-trigger="switch"].is-persona-switching {
+  opacity: 0.3;
+}
+[data-persona-trigger="switch"] p {
+  transition: color 500ms ease;
+}
+[data-persona-trigger="switch"] .underline {
+  transition:
+    background-color 500ms ease,
+    border-color 500ms ease;
+}
+
+/* ============================================================
+     NAVIGATION — GLOBAL
+     Scroll, nav bar, shared icon and brand transitions, L1 underline
+     ============================================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+.nav-wrapper-global {
+  transition: transform 300ms ease;
+}
+.nav-wrapper-global.is-panel-open {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: translateY(0) !important;
+}
+
+/* Back button */
+.back-icon-svg-path {
+  fill: var(--_brand-colors---white);
+}
+
+/* Shared colour transitions — text, brand logo, search icon */
+.com-mega-menu__link-l1 p,
+.com-mega-menu__link-l1 a {
+  transition: color 500ms ease;
+}
+.com-mega-wrapper .nav-brand_linkblock svg path {
+  transition: fill 500ms ease;
+}
+.com-nav-search-trigger-icon svg circle,
+.com-nav-search-trigger-icon svg path {
+  transition: stroke 500ms ease;
+}
+
+/* L1 active underline */
+.nav-link-active {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 500ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.com-mega-menu__link-l1:hover .nav-link-active,
+.com-mega-menu__link-l1.is-current .nav-link-active {
+  transform: scaleX(1);
+}
+
+/* ============================================================
+     NAVIGATION — MOBILE MENU
+     Hidden on desktop, visible below 1199px
+     Panel and level visibility driven by .is-active
+     ============================================================ */
+
+.com-mobile-menu {
+  display: none;
+}
+
+@media (max-width: 1199px) {
+  /* Hide desktop nav */
+  .com-mega-menu,
+  .com-mega-search-panel {
+    display: none !important;
+  }
+
+  /* Show mobile nav */
+  .com-mobile-menu {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .com-mobile-menu--bar > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Panel */
+  .com-mobile-menu--panel {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 200ms ease,
+      visibility 200ms ease;
+  }
+  .com-mobile-menu--panel.is-active {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Level */
+  .com-mobile-menu--level {
+    display: none;
+    opacity: 0;
+    transition: opacity 300ms ease;
+  }
+  .com-mobile-menu--level.is-active {
+    display: block;
+    opacity: 1;
+  }
+
+  .com-mobile-menu--trigger,
+  .com-mobile-menu--back {
+    cursor: pointer;
+  }
+}
+
+/* ============================================================
+     NAVIGATION — MEGA MENU SEARCH
+     Expanding input, results panel, search result items
+     ============================================================ */
+
+/* Nav layout elements animate during search expand */
+.com-mega-menu--links-wrap,
+.com-mega-menu--actions,
+.com-mega-search-wrapper,
+.com-navbar-group {
+  transition:
+    flex 500ms ease,
+    margin 500ms ease;
+}
+
+/* Search form and input fill available width */
+.com-mega-menu--search-form,
+.com-mega-menu--search-input {
+  width: 100%;
+}
+.com-mega-menu--search-input::placeholder {
+  color: var(--_brand-colors---brand-of-white);
+  opacity: 0.7;
+}
+
+/* Search wrapper */
+.com-mega-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Search element — collapsed by default, expands on active */
+.com-mega-search-element {
+  transform-origin: center right;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  transition:
+    width 500ms ease,
+    opacity 300ms ease;
+}
+.com-mega-search-wrapper.is-search-active .com-mega-search-element {
+  width: 400px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Hide persona switch while search is open */
+.com-mega-menu--actions.is-search-active .switch-text-link {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Results panel */
+.com-mega-search-panel {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 10;
+  overflow-y: auto;
+}
+.com-mega-search-panel.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Result items */
+.com-mega-menu__search-collection,
+.com-mega-menu__search-collection .w-dyn-item {
+  transition: opacity 500ms ease;
+}
+.com-mega-menu__search-collection .mega-menu--search-result-title .underline {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 700ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+/* ============================================================
+     NAVIGATION — MEGA MENU PANELS
+     Panel, L2–L4 groups and links, image detail, inactive overlay
+     ============================================================ */
+.com-mega-menu {
+  position: relative;
+}
+.com-mega-menu--bar > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Panel ── */
+.com-mega-menu--panel {
+  height: 100vh;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.com-mega-menu--panel.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ── Panel content — absolutely stacked, cross-fades between L2s ── */
+.com-mega-menu--panel-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 500ms ease,
+    visibility 500ms ease;
+}
+.com-mega-menu--panel-content.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ── L2 links ── */
+.com-mega-menu__link-l2 p {
+  opacity: 0.6;
+  transition: opacity 600ms ease;
+}
+.com-mega-menu__link-l2 .mega-subline-main-underline {
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+  transition:
+    transform 600ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 600ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.com-mega-menu__link-l2:hover p,
+.com-mega-menu__link-l2.is-active p {
+  opacity: 1;
+  transition: opacity 700ms ease;
+}
+.com-mega-menu__link-l2:hover .mega-subline-main-underline,
+.com-mega-menu__link-l2.is-active .mega-subline-main-underline {
+  transform: scaleX(1);
+  opacity: 1;
+  transition:
+    transform 700ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 700ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+/* ── L3 group ── */
+.com-mega-menu__group-l3 {
+  display: flex;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+  transition:
+    opacity 700ms ease,
+    visibility 700ms ease;
+}
+.com-mega-menu__group-l3.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  height: auto;
+  overflow: visible;
+}
+
+/* ── L3 links ── */
+.com-mega-menu__link-l3 {
+  transition: opacity 500ms ease;
+}
+.com-mega-menu:has(.com-mega-menu__link-l3.is-active)
+  .com-mega-menu__link-l3:not(.is-active) {
+  opacity: 0.3;
+}
+.com-mega-menu__link-l3.is-active .com-mega-l3-underline {
+  width: 100% !important;
+  transition: none !important;
+}
+.com-mega-menu__link-l3.has-sub-links {
+  transition: height 500ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+/* ── L3 arrow ── */
+.l3-arrow {
+  transform: rotate(90deg);
+  transition: transform 300ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.com-mega-menu__link-l3.is-active .l3-arrow {
+  transform: rotate(270deg);
+  transition: transform 500ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+/* ── L4 group ── */
+.com-mega-menu__group-l4 {
+  display: flex;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+  transition:
+    opacity 200ms ease,
+    visibility 200ms ease;
+}
+.com-mega-menu__group-l4.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  height: auto;
+  overflow: visible;
+  transition: opacity 300ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+/* ── Column info content ── */
+.col-info-content {
+  transition:
+    opacity 200ms ease,
+    visibility 200ms ease;
+}
+.col-info-content.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ── Image detail panel ── */
+.com-mega-menu__image-detail {
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  height: 70%;
+  pointer-events: none;
+  position: absolute;
+  transition:
+    opacity 300ms ease,
+    visibility 300ms ease;
+}
+.com-mega-menu__image-detail.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.com-mega-menu__image-detail img {
+  scale: 1.1;
+  transition: scale 1400ms ease;
+}
+.com-mega-menu__image-detail.is-active img {
+  scale: 1;
+}
+
+/* ── Inactive window overlay — dims page content behind open panel ── */
+.inactive-window-cover {
+  display: none;
+  overflow: hidden;
+  height: 0;
+  opacity: 0;
+  transition:
+    height 200ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 200ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+.com-mega-menu:has(.com-mega-menu--panel.is-active) .inactive-window-cover {
+  display: block;
+  height: 100vh;
+  opacity: 0.75;
+}
+
+/* ============================================================
+     FORMS
+     Popup form hidden until triggered
+     Mobile newsletter form — hidden on desktop, animated on mobile
+     ============================================================ */
+
+.section-popup-form {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 600ms ease,
+    visibility 600ms ease;
+}
+.section-popup-form.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Request-a-sample popup — company field only shown for the professional persona */
+[data-input='company'].is-hidden {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+  display: none;
+}
+.button-wrapper {
+  transition:
+    background-color 0.4s ease-in,
+    color 0.4s ease-in;
+}
+.button-wrapper.is-active-persona .button--bg {
+  background-color: var(--_brand-colors---brand-true-white);
+}
+.button-wrapper.is-active-persona .heading-15 {
+  color: var(--_brand-colors---brand-black);
+}
+
+.form-newsletter-wrapper-mobile {
+  display: none !important;
+}
+
+@media (max-width: 991px) {
+  .form-newsletter-wrapper-mobile {
+    display: flex !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 600ms ease,
+      visibility 600ms ease;
+  }
+  .form-newsletter-wrapper-mobile.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* ============================================================
+     IMAGE TRANSFORM
+     Mirrors an image horizontally via data attribute
+     ============================================================ */
+.image--cover[data-image-transform="true"] {
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+  -ms-transform: rotateY(180deg);
+  -o-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+
+/* ============================================================
+     SWIPER
+     Resets Webflow/Swiper defaults, core layout, slide width helpers
+     ============================================================ */
+
+/* Fix Webflow w-embed wrapper inside Swiper */
+.cs-swiper .w-embed {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Strip Webflow's inherited grid gap from swiper-wrapper */
+.cs-swiper .swiper-wrapper {
+  display: flex !important;
+  gap: 0 !important;
+  grid-column-gap: 0 !important;
+  grid-row-gap: 0 !important;
+}
+
+/* ── UI reset — strip Swiper's visual defaults ── */
+[class^="cs-prev"],
+[class^="cs-next"] {
+  cursor: default;
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  display: none !important;
+}
+.swiper-button-next,
+.swiper-button-prev {
+  position: static;
+  margin: 0;
+  width: auto;
+  height: auto;
+  color: inherit;
+  background: none;
+}
+.swiper-pagination {
+  position: static;
+  width: auto;
+}
+.swiper-scrollbar {
+  position: static;
+}
+
+/* ── Core ── */
+.cs-swiper {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 1;
+  flex-grow: 0;
+}
+.cs-swiper .swiper-slide {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.cs-swiper .swiper-slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.5;
+  color: $text;
+  background: $body-bg;
+}
+
+a {
+  color: $link;
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: $link-hover;
+}
+
+img,
+video,
+iframe {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
