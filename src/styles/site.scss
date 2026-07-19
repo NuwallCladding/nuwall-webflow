@@ -6,10 +6,6 @@
 html {
   scroll-behavior: smooth;
 }
-$body-bg: #ffffff;
-$text: #111111;
-$link: #0055ff;
-$link-hover: color.scale($link, $lightness: -20%);
 
 html {
   box-sizing: border-box;
@@ -942,8 +938,8 @@ body {
     "Segoe UI",
     sans-serif;
   line-height: 1.5;
-  color: $text;
-  background: $body-bg;
+  color: var(--_brand-colors---brand-black);
+  background: #fff;
 }
 
 a {
