@@ -55,8 +55,7 @@ export function initColourTabs() {
         palettes.forEach((palette, i) => {
           palette.style.animation = 'none';
           void palette.offsetHeight; // force reflow so the animation restarts
-          const delay = i * 0.2;
-          palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) ${delay}s forwards`;
+          palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1)`;
         });
       } else {
         swatches.forEach((el) => {
