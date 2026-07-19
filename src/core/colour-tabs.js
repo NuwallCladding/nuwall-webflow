@@ -30,23 +30,18 @@ export function initColourTabs() {
         content.style.visibility = 'visible';
         content.style.opacity = '1';
 
-        // Fade the whole set of swatches in together.
-        //
-        // Opacity is forced with `important` priority: this component's
-        // own CSS sets `transition: ... !important` on .colour-color-palette-item
-        // for its hover effect, which silently wins over a plain (non-
-        // important) inline transition and would otherwise block this
-        // entrance animation from animating at all.
-        swatches.forEach((el) => {
-          el.style.setProperty('transition', 'none', 'important');
-          el.style.setProperty('opacity', '0', 'important');
-        });
+        // Stagger the colour swatches in.
+        swatches.forEach((el, index) => {
+          el.style.transition = 'none';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(1rem)';
 
-        requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            swatches.forEach((el) => {
-              el.style.setProperty('transition', 'opacity 700ms ease', 'important');
-              el.style.setProperty('opacity', '1', 'important');
+            requestAnimationFrame(() => {
+              el.style.transition = 'opacity 700ms ease, transform 700ms ease';
+              el.style.transitionDelay = index * 200 + 'ms';
+              el.style.opacity = '1';
+              el.style.transform = 'translateY(0)';
             });
           });
         });
@@ -55,12 +50,15 @@ export function initColourTabs() {
         palettes.forEach((palette, i) => {
           palette.style.animation = 'none';
           void palette.offsetHeight; // force reflow so the animation restarts
-          palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1)`;
+          const delay = i * 0.2;
+          palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) ${delay}s forwards`;
         });
       } else {
         swatches.forEach((el) => {
-          el.style.setProperty('transition', 'none', 'important');
-          el.style.setProperty('opacity', '0', 'important');
+          el.style.transition = 'none';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(1rem)';
+          el.style.transitionDelay = '0ms';
         });
         content.style.visibility = 'hidden';
         content.style.opacity = '0';
