@@ -30,38 +30,56 @@ export function initColourTabs() {
         content.style.visibility = 'visible';
         content.style.opacity = '1';
 
-        // Stack the colour swatches at the far right of their row, then
-        // slide each one left into its resting slot, staggered left-to-right.
-        // (A plain fade-in-place let the swatch underneath show through
-        // while the new colour was still fading in — sliding fully in from
-        // off to the right avoids that.)
+        // Stack the colour swatches on top of the last swatch's resting
+        // spot, then slide each one into its own resting slot, staggered
+        // left-to-right. (A plain fade-in-place let the swatch underneath
+        // show through while the new colour was still fading in — sliding
+        // fully in from the last swatch's position avoids that.)
         // A tab panel can hold several colour rows (one per environment
-        // card), so each swatch's slide distance is measured against the
-        // right edge of the row it actually belongs to, not the panel.
+        // card), so swatches are grouped by the row they actually belong
+        // to and measured against that row's own last swatch.
+        //
+        // Styles are forced with `important` priority: this component's
+        // own CSS sets `transition: ... !important` on .colour-color-palette-item
+        // for its hover effect, which silently wins over a plain (non-
+        // important) inline transition and would otherwise block this
+        // entrance animation from animating at all.
         swatches.forEach((el) => {
-          el.style.transition = 'none';
-          el.style.opacity = '0';
-          el.style.transform = 'translateX(0)';
+          el.style.setProperty('transition', 'none', 'important');
+          el.style.setProperty('opacity', '0', 'important');
+          el.style.setProperty('transform', 'translateX(0)', 'important');
         });
 
         requestAnimationFrame(() => {
-          const rowRights = new Map();
-          const offsets = Array.from(swatches).map((el) => {
+          const rowGroups = new Map();
+          swatches.forEach((el) => {
             const row = el.closest('.colour-environment-colours-flex') || content;
-            if (!rowRights.has(row)) rowRights.set(row, row.getBoundingClientRect().right);
-            return rowRights.get(row) - el.getBoundingClientRect().right;
+            if (!rowGroups.has(row)) rowGroups.set(row, []);
+            rowGroups.get(row).push(el);
           });
 
-          swatches.forEach((el, index) => {
-            el.style.transform = `translateX(${offsets[index]}px)`;
+          const offsetByEl = new Map();
+          rowGroups.forEach((els) => {
+            const lastRight = els[els.length - 1].getBoundingClientRect().right;
+            els.forEach((el) => {
+              offsetByEl.set(el, lastRight - el.getBoundingClientRect().right);
+            });
+          });
+
+          swatches.forEach((el) => {
+            el.style.setProperty('transform', `translateX(${offsetByEl.get(el)}px)`, 'important');
           });
 
           requestAnimationFrame(() => {
             swatches.forEach((el, index) => {
-              el.style.transition = 'opacity 700ms ease, transform 700ms ease';
-              el.style.transitionDelay = index * 150 + 'ms';
-              el.style.opacity = '1';
-              el.style.transform = 'translateX(0)';
+              const delay = index * 150;
+              el.style.setProperty(
+                'transition',
+                `opacity 700ms ease ${delay}ms, transform 700ms ease ${delay}ms`,
+                'important'
+              );
+              el.style.setProperty('opacity', '1', 'important');
+              el.style.setProperty('transform', 'translateX(0)', 'important');
             });
           });
         });
@@ -75,10 +93,9 @@ export function initColourTabs() {
         });
       } else {
         swatches.forEach((el) => {
-          el.style.transition = 'none';
-          el.style.opacity = '0';
-          el.style.transform = 'translateX(0)';
-          el.style.transitionDelay = '0ms';
+          el.style.setProperty('transition', 'none', 'important');
+          el.style.setProperty('opacity', '0', 'important');
+          el.style.setProperty('transform', 'translateX(0)', 'important');
         });
         content.style.visibility = 'hidden';
         content.style.opacity = '0';

@@ -1140,12 +1140,12 @@ select {
     flex-grow 0.6s ease-out,
     z-index 0s 0.6s !important;
 }
-
+/*
 .colour-color-palette-item:hover {
   transition:
     flex 0.6s ease-out,
     z-index 0s 0s;
-}
+}*/
 
 .colour-environment-colours-flex:hover .colour-color-palette-item:not(:hover) {
   flex: 0.8 1 0% !important;
