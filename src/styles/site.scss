@@ -947,13 +947,13 @@ body {
 }
 
 a {
-  color: $link;
+  color: var(--_brand-colors---brand-black);
   text-decoration: none;
 }
 
 a:hover,
 a:focus {
-  color: $link-hover;
+  color: var(--_brand-colors---brand-black);
 }
 
 img,
