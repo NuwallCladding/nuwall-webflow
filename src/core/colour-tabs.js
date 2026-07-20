@@ -31,15 +31,18 @@ export function initColourTabs() {
         content.style.opacity = '1';
 
         // Stagger the colour swatches in.
+        const total = swatches.length;
         swatches.forEach((el, index) => {
+          const delay = (total - 1 - index) * 200;
           el.style.transition = 'none';
           el.style.opacity = '0';
-          el.style.transform = 'translateX(-2rem) scale(0.96)';
+          el.style.transform = 'translateY(1rem)';
 
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              el.style.transition = 'transform 600ms cubic-bezier(0.22, 1, 0.36, 1)';
-              el.style.transitionDelay = index * 120 + 'ms';
+              el.style.zIndex = index;
+              el.style.transition = 'opacity 700ms ease, transform 700ms ease';
+              el.style.transitionDelay = delay + 'ms';
               el.style.opacity = '1';
               el.style.transform = 'translateY(0)';
             });
