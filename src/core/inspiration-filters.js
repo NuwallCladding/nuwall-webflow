@@ -1,6 +1,6 @@
-// Inspiration page CMS filters: profile/sector pill filter groups (with a
-// residential sub-filter), live search, and empty-state + URL sync — all
-// driven by `data-filter-*` attributes on the CMS grid.
+// Inspiration page CMS filters: profile/sector pill filter groups, live
+// search, and empty-state + URL sync — all driven by `data-filter-*`
+// attributes on the CMS grid.
 const CONFIG = {
   STAGGER: 0,
   FADE: 700,
@@ -16,7 +16,6 @@ export function initInspirationFilters() {
     active: {
       profile: new Set(),
       sector: new Set(),
-      residentialSub: new Set(),
     },
     searchActive: false,
     pillTimers: new Map(),
@@ -74,19 +73,16 @@ export function initInspirationFilters() {
 
     const hasProfile = state.active.profile.size > 0;
     const hasSector = state.active.sector.size > 0;
-    const hasResidentialSub = state.active.residentialSub.size > 0;
     let count = 0;
 
     getCards().forEach((card) => {
       const profileValues = cardValues(card, 'profile');
       const sectorValues = cardValues(card, 'sector');
-      const subValues = cardValues(card, 'residential-sub');
 
       const profileMatch = !hasProfile || [...state.active.profile].every((v) => profileValues.includes(v));
       const sectorMatch = !hasSector || [...state.active.sector].every((v) => sectorValues.includes(v));
-      const subMatch = !hasResidentialSub || [...state.active.residentialSub].every((v) => subValues.includes(v));
 
-      const show = profileMatch && sectorMatch && subMatch;
+      const show = profileMatch && sectorMatch;
       card.style.display = show ? '' : 'none';
       if (show) count++;
     });
@@ -102,7 +98,6 @@ export function initInspirationFilters() {
 
     if (state.active.profile.size > 0) params.set('profile', [...state.active.profile].join(','));
     if (state.active.sector.size > 0) params.set('sector', [...state.active.sector].join(','));
-    if (state.active.residentialSub.size > 0) params.set('sub', [...state.active.residentialSub].join(','));
 
     const newURL = params.toString()
       ? `${window.location.pathname}?${params.toString()}`
@@ -116,7 +111,6 @@ export function initInspirationFilters() {
 
     const profileVals = params.get('profile') ? params.get('profile').split(',') : [];
     const sectorVals = params.get('sector') ? params.get('sector').split(',') : [];
-    const subVals = params.get('sub') ? params.get('sub').split(',') : [];
 
     if (profileVals.length) {
       profileVals.forEach((raw) => {
@@ -136,31 +130,6 @@ export function initInspirationFilters() {
         if (pill) pill.classList.add('is-active');
       });
       openGroup('sector');
-
-      if (state.active.sector.has('residential')) {
-        const groupEl = getGroupEl('residential-sub');
-        if (groupEl) {
-          groupEl.style.display = 'flex';
-          void groupEl.offsetHeight;
-          groupEl.classList.add('is-open');
-        }
-
-        if (subVals.length) {
-          subVals.forEach((raw) => {
-            const val = raw.toLowerCase();
-            state.active.residentialSub.add(val);
-            const pill = getGroupPills('residential-sub').find(
-              (p) => p.getAttribute('data-filter-item').toLowerCase() === val
-            );
-            if (pill) {
-              showPill(pill, 0);
-              pill.classList.add('is-active');
-            }
-          });
-        } else {
-          openResidentialSub();
-        }
-      }
     }
 
     applyFilters();
@@ -193,8 +162,6 @@ export function initInspirationFilters() {
 
     const triggerEl = $(`[data-filter-target="${group}"]`);
     if (triggerEl) triggerEl.classList.remove('is-open');
-
-    if (group === 'sector') closeResidentialSub();
   }
 
   // Not currently wired to any trigger, kept for parity with the original
@@ -204,64 +171,6 @@ export function initInspirationFilters() {
     getGroupPills(group).forEach((pill) => {
       pill.classList.remove('is-active');
     });
-  }
-
-  // ---- Residential sub-filter -----------------------------------------
-
-  function openResidentialSub() {
-    const groupEl = getGroupEl('residential-sub');
-    if (!groupEl) return;
-
-    resetResidentialSub();
-
-    groupEl.style.display = 'flex';
-    void groupEl.offsetHeight;
-    groupEl.classList.add('is-open');
-
-    getGroupPills('residential-sub').forEach((pill, i) => {
-      showPill(pill, i * CONFIG.STAGGER);
-    });
-  }
-
-  function closeResidentialSub() {
-    const groupEl = getGroupEl('residential-sub');
-    if (!groupEl) return;
-
-    groupEl.classList.remove('is-open');
-
-    setTimeout(() => {
-      groupEl.style.display = 'none';
-      resetResidentialSub();
-    }, CONFIG.FADE_OUT);
-  }
-
-  function resetResidentialSub() {
-    state.active.residentialSub.clear();
-    getGroupPills('residential-sub').forEach((pill) => {
-      clearTimeout(state.pillTimers.get(pill));
-      pill.classList.remove('is-active', 'is-visible');
-      pill.style.display = 'none';
-    });
-  }
-
-  // Sub menu stays fully open on selection (doesn't hide other pills).
-  function selectSubPill(pill) {
-    const val = pill.getAttribute('data-filter-item').toLowerCase();
-
-    getGroupPills('residential-sub').forEach((p) => {
-      p.classList.remove('is-active');
-    });
-    state.active.residentialSub.clear();
-
-    state.active.residentialSub.add(val);
-    pill.classList.add('is-active');
-  }
-
-  function deselectSubPill(pill) {
-    const val = pill.getAttribute('data-filter-item').toLowerCase();
-    state.active.residentialSub.delete(val);
-    pill.classList.remove('is-active');
-    // pill stays visible — sub menu remains open
   }
 
   // ---- Click handling (triggers, pills, close icons) --------------------
@@ -291,18 +200,8 @@ export function initInspirationFilters() {
 
       const val = pill.getAttribute('data-filter-item').toLowerCase();
 
-      if (group === 'residential-sub') {
-        deselectSubPill(pill);
-        applyFilters();
-        return;
-      }
-
       state.active[group].delete(val);
       pill.classList.remove('is-active');
-
-      if (group === 'sector' && val === 'residential') {
-        closeResidentialSub();
-      }
 
       applyFilters();
       return;
@@ -315,32 +214,14 @@ export function initInspirationFilters() {
 
     const val = pill.getAttribute('data-filter-item').toLowerCase();
 
-    if (group === 'residential-sub') {
-      if (state.active.residentialSub.has(val)) {
-        deselectSubPill(pill);
-      } else {
-        selectSubPill(pill);
-      }
-      applyFilters();
-      return;
-    }
-
     if (!state.active[group]) return;
 
     if (state.active[group].has(val)) {
       state.active[group].delete(val);
       pill.classList.remove('is-active');
-
-      if (group === 'sector' && val === 'residential') {
-        closeResidentialSub();
-      }
     } else {
       state.active[group].add(val);
       pill.classList.add('is-active');
-
-      if (group === 'sector' && val === 'residential') {
-        openResidentialSub();
-      }
     }
 
     applyFilters();
@@ -423,13 +304,6 @@ export function initInspirationFilters() {
       pill.classList.remove('is-visible', 'is-active');
     });
   });
-
-  const subGroupEl = getGroupEl('residential-sub');
-  if (subGroupEl) {
-    subGroupEl.style.display = 'none';
-    subGroupEl.classList.remove('is-open');
-  }
-  resetResidentialSub();
 
   applyFromURL();
 }
