@@ -233,6 +233,13 @@ export function initDrawingsViewer() {
     }
   }
 
+  // Hidden (display: none) until a library is selected; revealed once the
+  // grid/header/counter/bulk-links for that library have all been updated.
+  function showContentWrapper() {
+    const wrapper = document.querySelector('.cad-lib-content-wrapper');
+    if (wrapper) wrapper.style.display = '';
+  }
+
   // ---- filter wiring -------------------------------------------------
 
   function safe(name, fn) {
@@ -267,6 +274,7 @@ export function initDrawingsViewer() {
           updateLibraryDetails(library);
           applyFilters();
           closeDropdown(link);
+          showContentWrapper();
         });
       });
   }
