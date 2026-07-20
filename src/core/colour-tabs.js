@@ -53,9 +53,8 @@ export function initColourTabs() {
         const totalPalettes = palettes.length;
         palettes.forEach((palette, i) => {
           palette.style.animation = 'none';
-          palette.style.zIndex = totalPalettes - 1 - i;
           void palette.offsetHeight; // force reflow so the animation restarts
-          const delay = (totalPalettes - 1 - i) * 0.2;
+          const delay = (totalPalettes - 1 - i) * 0.3;
           palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) ${delay}s forwards`;
         });
       } else {
