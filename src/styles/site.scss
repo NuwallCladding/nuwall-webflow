@@ -1274,3 +1274,330 @@ select {
   border: none;
   display: block;
 }
+
+/* ============================================================
+     INSPIRATION PAGE
+     Finsweet-driven (fs-list) project filters and CMS grid layout.
+     ============================================================ */
+
+.filter-trigger:is(.is-open) .filter-icon-trigger svg .toggle {
+  display: none;
+}
+
+/* NOTE: the next two rule blocks both target [data-filter-group] and
+   .filter-item and were both live in the original page embed; kept in
+   source order since the second block's values (100ms fade, var(--fade-in)/
+   var(--fade-out) timing, 0.2 hover opacity) win the cascade over the
+   first (300ms fade, 700ms/200ms timing, 0.1 hover opacity) for every
+   property they share. The first block looks like superseded leftover
+   CSS — safe to delete once confirmed. */
+
+/* ── Filter Group Wrapper ─────────────────────────────── */
+[data-filter-group] {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+[data-filter-group].is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Filter Pills ─────────────────────────────────────── */
+.filter-item {
+  opacity: 0;
+  padding-right: 15px;
+  cursor: pointer;
+  transition:
+    opacity 700ms ease,
+    background-color 600ms ease,
+    color 600ms ease;
+}
+
+.filter-item:not(.is-visible) {
+  transition:
+    opacity 200ms ease,
+    background-color 200ms ease,
+    padding-right 0ms ease,
+    color 200ms ease;
+}
+
+.filter-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.filter-item.is-visible {
+  opacity: 1;
+}
+
+.filter-item.is-active {
+  background-color: #000000;
+}
+
+.filter-item.is-active p {
+  color: #ffffff;
+}
+
+.filter-item.is-active .icon-close {
+  stroke: #ffffff;
+}
+
+.filter-item .filter-icon-close {
+  display: none;
+}
+
+.filter-item.is-active .filter-icon-close {
+  display: block;
+}
+
+/* ── Sub-filter placeholder styling ──────────────────── */
+[data-filter-group='residential-sub'] .filter-item {
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 0;
+}
+
+[data-filter-group='residential-sub'] .filter-item.is-active p {
+  color: black;
+}
+
+[data-filter-group='residential-sub'] .filter-item.is-active .filter-icon-close * {
+  stroke: black;
+}
+
+[data-filter-group='residential-sub'] .filter-item.is-visible {
+  opacity: 1;
+}
+
+/* Sub-filter uses display none, not opacity, to take zero space */
+[data-filter-group='residential-sub'] {
+  display: none;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+[data-filter-group='residential-sub'].is-open {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* ── Filter Group Wrapper (refined) ──────────────────── */
+[data-filter-group] {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease;
+}
+
+[data-filter-group].is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Filter Pills (refined) ───────────────────────────── */
+.filter-item {
+  --fade-in: 600ms;
+  --fade-out: 50ms;
+
+  opacity: 0;
+  padding-right: 15px;
+  cursor: pointer;
+  transition:
+    opacity var(--fade-in) ease,
+    background-color 200ms ease,
+    padding-right 0ms ease,
+    color 200ms ease;
+}
+
+.filter-item.is-visible {
+  opacity: 1;
+}
+
+.filter-item:not(.is-visible) {
+  transition:
+    opacity var(--fade-out) ease,
+    background-color var(--fade-out) ease,
+    stroke var(--fade-out) ease,
+    color var(--fade-out) ease;
+}
+
+.filter-item:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.filter-item.is-active {
+  background-color: #000000;
+}
+
+.filter-item.is-active p {
+  color: #ffffff;
+}
+
+.filter-item.is-active .icon-close {
+  stroke: #ffffff;
+}
+
+.filter-item .filter-icon-close {
+  display: none;
+}
+
+.filter-item.is-active .filter-icon-close {
+  display: block;
+}
+
+/* ── Sub-filter (refined) ─────────────────────────────── */
+[data-filter-group='residential-sub'] {
+  display: none;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+[data-filter-group='residential-sub'].is-open {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+[data-filter-group='residential-sub'] .filter-item {
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 0;
+}
+
+[data-filter-group='residential-sub'] .filter-item.is-active p {
+  color: black;
+}
+
+[data-filter-group='residential-sub'] .filter-item.is-active .filter-icon-close * {
+  stroke: black;
+}
+
+/* ── Grid Spans ───────────────────────────────────────── */
+[data-grid-span='1'] {
+  grid-column-end: span 1;
+}
+[data-grid-span='2'] {
+  grid-column-end: span 2;
+}
+[data-grid-span='3'] {
+  grid-column-end: span 3;
+}
+[data-grid-span='4'] {
+  grid-column-end: span 4;
+}
+[data-grid-span='5'] {
+  grid-column-end: span 5;
+}
+[data-grid-span='6'] {
+  grid-column-end: span 6;
+}
+[data-grid-span='7'] {
+  grid-column-end: span 7;
+}
+[data-grid-span='8'] {
+  grid-column-end: span 8;
+}
+[data-grid-span='9'] {
+  grid-column-end: span 9;
+}
+[data-grid-span='10'] {
+  grid-column-end: span 10;
+}
+[data-grid-span='11'] {
+  grid-column-end: span 11;
+}
+[data-grid-span='12'] {
+  grid-column-end: span 12;
+}
+
+/* ── Grid Start Position ──────────────────────────────── */
+[data-grid-start='1'] {
+  grid-column-start: 1;
+}
+[data-grid-start='2'] {
+  grid-column-start: 2;
+}
+[data-grid-start='3'] {
+  grid-column-start: 3;
+}
+[data-grid-start='4'] {
+  grid-column-start: 4;
+}
+[data-grid-start='5'] {
+  grid-column-start: 5;
+}
+[data-grid-start='6'] {
+  grid-column-start: 6;
+}
+[data-grid-start='7'] {
+  grid-column-start: 7;
+}
+[data-grid-start='8'] {
+  grid-column-start: 8;
+}
+[data-grid-start='9'] {
+  grid-column-start: 9;
+}
+[data-grid-start='10'] {
+  grid-column-start: 10;
+}
+[data-grid-start='11'] {
+  grid-column-start: 11;
+}
+[data-grid-start='12'] {
+  grid-column-start: 12;
+}
+
+/* ── Image Ratios ─────────────────────────────────────── */
+[data-ratio='16/9'] .inspiration-project-item-image-wrapper {
+  aspect-ratio: 16 / 9;
+}
+[data-ratio='3/2'] .inspiration-project-item-image-wrapper {
+  aspect-ratio: 3 / 2;
+}
+[data-ratio='1/1'] .inspiration-project-item-image-wrapper {
+  aspect-ratio: 1 / 1;
+}
+[data-ratio='10/14'] .inspiration-project-item-image-wrapper {
+  aspect-ratio: 10 / 14;
+}
+
+/* ── Image Fill ───────────────────────────────────────── */
+.inspiration-project-item {
+  align-self: start;
+}
+.inspiration-project-item-image-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.inspiration-project-item-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Webflow Grid Overrides */
+.w-dyn-items.grid-12col {
+  grid-auto-rows: auto;
+  grid-template-rows: auto;
+  align-content: start;
+}
+
+@media (max-width: 728px) {
+  /* All items span full width from column 1 */
+  [data-grid-span] {
+    grid-column-start: 1;
+    grid-column-end: span 12;
+  }
+
+  /* Override all start positions */
+  [data-grid-start] {
+    grid-column-start: 1;
+  }
+
+  /* All images become 3/2 regardless of data-ratio */
+  [data-ratio] .inspiration-project-item-image-wrapper {
+    aspect-ratio: 3 / 2;
+  }
+}

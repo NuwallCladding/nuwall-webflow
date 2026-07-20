@@ -9,6 +9,7 @@ const entries = {
   'colour-picker': 'src/entries/colour-picker.js',
   'home-page': 'src/entries/home-page.js',
   'colour-page': 'src/entries/colour-page.js',
+  'inspiration-page': 'src/entries/inspiration-page.js',
 };
 
 // IIFE output can't share code chunks between entries, so we build ONE entry
