@@ -1,11 +1,8 @@
 // Inspiration page CMS filters: profile/sector pill filter groups, live
 // search, and empty-state + URL sync — all driven by `data-filter-*`
-// attributes on the CMS grid.
+// attributes on the CMS grid. Pills are always visible; there is no
+// per-group open/close or per-pill fade in/out.
 const CONFIG = {
-  STAGGER: 0,
-  FADE: 700,
-  FADE_OUT: 200,
-  PILL_DISPLAY: 'flex',
   MIN_SEARCH: 4, // live search kicks in once the query reaches this length
 };
 
@@ -20,7 +17,6 @@ export function initInspirationFilters() {
       sector: null,
     },
     searchActive: false,
-    pillTimers: new Map(),
   };
 
   // ---- DOM helpers -------------------------------------------------
@@ -41,32 +37,6 @@ export function initInspirationFilters() {
 
   const cardValues = (card, group) =>
     $$(`[data-filter-set="${group}"]`, card).map((el) => el.textContent.trim().toLowerCase());
-
-  const isGroupOpen = (group) => {
-    const el = getGroupEl(group);
-    return el ? el.classList.contains('is-open') : false;
-  };
-
-  // ---- Pill timers (show / hide) ------------------------------------
-
-  function showPill(pill, delay) {
-    clearTimeout(state.pillTimers.get(pill));
-    const id = setTimeout(() => {
-      pill.style.display = CONFIG.PILL_DISPLAY;
-      void pill.offsetHeight;
-      pill.classList.add('is-visible');
-    }, delay || 0);
-    state.pillTimers.set(pill, id);
-  }
-
-  function hidePill(pill) {
-    clearTimeout(state.pillTimers.get(pill));
-    pill.classList.remove('is-visible');
-    const id = setTimeout(() => {
-      pill.style.display = 'none';
-    }, CONFIG.FADE_OUT);
-    state.pillTimers.set(pill, id);
-  }
 
   // ---- Core filter logic & URL sync ----------------------------------
 
@@ -122,7 +92,6 @@ export function initInspirationFilters() {
         (p) => p.getAttribute('data-filter-item').toLowerCase() === profileVal
       );
       if (pill) pill.classList.add('is-active');
-      openGroup('profile');
     }
 
     if (sectorVal) {
@@ -131,67 +100,14 @@ export function initInspirationFilters() {
         (p) => p.getAttribute('data-filter-item').toLowerCase() === sectorVal
       );
       if (pill) pill.classList.add('is-active');
-      openGroup('sector');
     }
 
     applyFilters();
   }
 
-  // ---- Group open / close / clear ------------------------------------
-
-  function openGroup(group) {
-    const groupEl = getGroupEl(group);
-    if (!groupEl) return;
-    groupEl.classList.add('is-open');
-
-    const triggerEl = $(`[data-filter-target="${group}"]`);
-    if (triggerEl) triggerEl.classList.add('is-open');
-
-    getGroupPills(group).forEach((pill, i) => {
-      if (pill.classList.contains('is-visible')) return;
-      showPill(pill, i * CONFIG.STAGGER);
-    });
-  }
-
-  function closeGroup(group) {
-    const groupEl = getGroupEl(group);
-    getGroupPills(group).forEach(hidePill);
-    if (groupEl) {
-      setTimeout(() => {
-        groupEl.classList.remove('is-open');
-      }, CONFIG.FADE_OUT);
-    }
-
-    const triggerEl = $(`[data-filter-target="${group}"]`);
-    if (triggerEl) triggerEl.classList.remove('is-open');
-  }
-
-  // Not currently wired to any trigger, kept for parity with the original
-  // (a "clear this group" control can call it directly if one is added).
-  function clearGroupActive(group) {
-    state.active[group] = null;
-    getGroupPills(group).forEach((pill) => {
-      pill.classList.remove('is-active');
-    });
-  }
-
-  // ---- Click handling (triggers, pills, close icons) --------------------
-
-  function handleTrigger(group) {
-    if (isGroupOpen(group)) {
-      closeGroup(group);
-    } else {
-      openGroup(group);
-    }
-  }
+  // ---- Click handling (pills, close icons) ------------------------------
 
   function handleDocumentClick(e) {
-    const trigger = e.target.closest('[data-filter-target]');
-    if (trigger) {
-      handleTrigger(trigger.getAttribute('data-filter-target'));
-      return;
-    }
-
     const icon = e.target.closest('.filter-icon-close');
     if (icon) {
       e.stopPropagation();
@@ -208,7 +124,7 @@ export function initInspirationFilters() {
     }
 
     const pill = e.target.closest('.filter-item');
-    if (!pill || pill.hasAttribute('data-filter-target')) return;
+    if (!pill) return;
     const group = groupOfPill(pill);
     if (!group) return;
 
@@ -298,15 +214,6 @@ export function initInspirationFilters() {
 
   document.addEventListener('click', handleDocumentClick);
   setupSearch();
-
-  ['profile', 'sector'].forEach((group) => {
-    const groupEl = getGroupEl(group);
-    if (groupEl) groupEl.classList.remove('is-open');
-    getGroupPills(group).forEach((pill) => {
-      pill.style.display = 'none';
-      pill.classList.remove('is-visible', 'is-active');
-    });
-  });
 
   applyFromURL();
 }

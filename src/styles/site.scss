@@ -1280,145 +1280,13 @@ select {
      Finsweet-driven (fs-list) project filters and CMS grid layout.
      ============================================================ */
 
-.filter-trigger:is(.is-open) .filter-icon-trigger svg .toggle {
-  display: none;
-}
-
-/* NOTE: the next two rule blocks both target [data-filter-group] and
-   .filter-item and were both live in the original page embed; kept in
-   source order since the second block's values (100ms fade, var(--fade-in)/
-   var(--fade-out) timing, 0.2 hover opacity) win the cascade over the
-   first (300ms fade, 700ms/200ms timing, 0.1 hover opacity) for every
-   property they share. The first block looks like superseded leftover
-   CSS — safe to delete once confirmed. */
-
-/* ── Filter Group Wrapper ─────────────────────────────── */
-[data-filter-group] {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 300ms ease;
-}
-
-[data-filter-group].is-open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 /* ── Filter Pills ─────────────────────────────────────── */
 .filter-item {
-  opacity: 0;
   padding-right: 15px;
   cursor: pointer;
   transition:
-    opacity 700ms ease,
-    background-color 600ms ease,
-    color 600ms ease;
-}
-
-.filter-item:not(.is-visible) {
-  transition:
-    opacity 200ms ease,
     background-color 200ms ease,
-    padding-right 0ms ease,
     color 200ms ease;
-}
-
-.filter-item:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.filter-item.is-visible {
-  opacity: 1;
-}
-
-.filter-item.is-active {
-  background-color: #000000;
-}
-
-.filter-item.is-active p {
-  color: #ffffff;
-}
-
-.filter-item.is-active .icon-close {
-  stroke: #ffffff;
-}
-
-.filter-item .filter-icon-close {
-  display: none;
-}
-
-.filter-item.is-active .filter-icon-close {
-  display: block;
-}
-
-/* ── Sub-filter placeholder styling ──────────────────── */
-[data-filter-group='residential-sub'] .filter-item {
-  background-color: rgba(0, 0, 0, 0.1);
-  border: 0;
-}
-
-[data-filter-group='residential-sub'] .filter-item.is-active p {
-  color: black;
-}
-
-[data-filter-group='residential-sub'] .filter-item.is-active .filter-icon-close * {
-  stroke: black;
-}
-
-[data-filter-group='residential-sub'] .filter-item.is-visible {
-  opacity: 1;
-}
-
-/* Sub-filter uses display none, not opacity, to take zero space */
-[data-filter-group='residential-sub'] {
-  display: none;
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity 300ms ease;
-}
-
-[data-filter-group='residential-sub'].is-open {
-  pointer-events: auto;
-  opacity: 1;
-}
-
-/* ── Filter Group Wrapper (refined) ──────────────────── */
-[data-filter-group] {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 100ms ease;
-}
-
-[data-filter-group].is-open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* ── Filter Pills (refined) ───────────────────────────── */
-.filter-item {
-  --fade-in: 600ms;
-  --fade-out: 50ms;
-
-  opacity: 0;
-  padding-right: 15px;
-  cursor: pointer;
-  transition:
-    opacity var(--fade-in) ease,
-    background-color 200ms ease,
-    padding-right 0ms ease,
-    color 200ms ease;
-}
-
-.filter-item.is-visible {
-  opacity: 1;
-}
-
-.filter-item:not(.is-visible) {
-  transition:
-    opacity var(--fade-out) ease,
-    background-color var(--fade-out) ease,
-    stroke var(--fade-out) ease,
-    color var(--fade-out) ease;
 }
 
 .filter-item:hover {
@@ -1445,17 +1313,9 @@ select {
   display: block;
 }
 
-/* ── Sub-filter (refined) ─────────────────────────────── */
+/* ── Sub-filter placeholder styling ──────────────────── */
 [data-filter-group='residential-sub'] {
   display: none;
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity 300ms ease;
-}
-
-[data-filter-group='residential-sub'].is-open {
-  pointer-events: auto;
-  opacity: 1;
 }
 
 [data-filter-group='residential-sub'] .filter-item {
@@ -1601,3 +1461,21 @@ select {
     aspect-ratio: 3 / 2;
   }
 }
+
+/* ============================================================
+     INSPIRATION PAGE — MOBILE FILTERS
+     Mobile filter panel, triggers, and sub-filter reveal
+     ============================================================ */
+  .centered-wrapper[data-bg-color='neutral'] {
+    background-color: #f7f5f5; /* Use a Webflow color variable */
+  }
+
+  .centered-wrapper[data-bg-color='blue'] {
+    background-color: #b8c5d3; /* Use a Webflow color variable */
+  }
+
+  .inspiration-project-item[data-highlight='Yes'] {
+    grid-column: span 2!important;
+    grid-row: span 2!important;
+    height:100%;
+  }
