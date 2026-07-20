@@ -12,10 +12,12 @@ const CONFIG = {
 export function initInspirationFilters() {
   if (!document.querySelector('[data-filter-card]')) return;
 
+  // Each group holds at most one active value — selecting a pill replaces
+  // whatever was previously active in that group.
   const state = {
     active: {
-      profile: new Set(),
-      sector: new Set(),
+      profile: null,
+      sector: null,
     },
     searchActive: false,
     pillTimers: new Map(),
@@ -71,16 +73,16 @@ export function initInspirationFilters() {
   function applyFilters() {
     if (state.searchActive) return;
 
-    const hasProfile = state.active.profile.size > 0;
-    const hasSector = state.active.sector.size > 0;
+    const hasProfile = state.active.profile !== null;
+    const hasSector = state.active.sector !== null;
     let count = 0;
 
     getCards().forEach((card) => {
       const profileValues = cardValues(card, 'profile');
       const sectorValues = cardValues(card, 'sector');
 
-      const profileMatch = !hasProfile || [...state.active.profile].every((v) => profileValues.includes(v));
-      const sectorMatch = !hasSector || [...state.active.sector].every((v) => sectorValues.includes(v));
+      const profileMatch = !hasProfile || profileValues.includes(state.active.profile);
+      const sectorMatch = !hasSector || sectorValues.includes(state.active.sector);
 
       const show = profileMatch && sectorMatch;
       card.style.display = show ? '' : 'none';
@@ -96,8 +98,8 @@ export function initInspirationFilters() {
   function updateURL() {
     const params = new URLSearchParams();
 
-    if (state.active.profile.size > 0) params.set('profile', [...state.active.profile].join(','));
-    if (state.active.sector.size > 0) params.set('sector', [...state.active.sector].join(','));
+    if (state.active.profile) params.set('profile', state.active.profile);
+    if (state.active.sector) params.set('sector', state.active.sector);
 
     const newURL = params.toString()
       ? `${window.location.pathname}?${params.toString()}`
@@ -109,26 +111,26 @@ export function initInspirationFilters() {
   function applyFromURL() {
     const params = new URLSearchParams(window.location.search);
 
-    const profileVals = params.get('profile') ? params.get('profile').split(',') : [];
-    const sectorVals = params.get('sector') ? params.get('sector').split(',') : [];
+    // Only the first value is honoured per group (single-select), in case
+    // an old comma-separated link is still floating around.
+    const profileVal = params.get('profile') ? params.get('profile').split(',')[0].toLowerCase() : null;
+    const sectorVal = params.get('sector') ? params.get('sector').split(',')[0].toLowerCase() : null;
 
-    if (profileVals.length) {
-      profileVals.forEach((raw) => {
-        const val = raw.toLowerCase();
-        state.active.profile.add(val);
-        const pill = getGroupPills('profile').find((p) => p.getAttribute('data-filter-item').toLowerCase() === val);
-        if (pill) pill.classList.add('is-active');
-      });
+    if (profileVal) {
+      state.active.profile = profileVal;
+      const pill = getGroupPills('profile').find(
+        (p) => p.getAttribute('data-filter-item').toLowerCase() === profileVal
+      );
+      if (pill) pill.classList.add('is-active');
       openGroup('profile');
     }
 
-    if (sectorVals.length) {
-      sectorVals.forEach((raw) => {
-        const val = raw.toLowerCase();
-        state.active.sector.add(val);
-        const pill = getGroupPills('sector').find((p) => p.getAttribute('data-filter-item').toLowerCase() === val);
-        if (pill) pill.classList.add('is-active');
-      });
+    if (sectorVal) {
+      state.active.sector = sectorVal;
+      const pill = getGroupPills('sector').find(
+        (p) => p.getAttribute('data-filter-item').toLowerCase() === sectorVal
+      );
+      if (pill) pill.classList.add('is-active');
       openGroup('sector');
     }
 
@@ -167,7 +169,7 @@ export function initInspirationFilters() {
   // Not currently wired to any trigger, kept for parity with the original
   // (a "clear this group" control can call it directly if one is added).
   function clearGroupActive(group) {
-    state.active[group].clear();
+    state.active[group] = null;
     getGroupPills(group).forEach((pill) => {
       pill.classList.remove('is-active');
     });
@@ -198,9 +200,7 @@ export function initInspirationFilters() {
       const group = groupOfPill(pill);
       if (!group) return;
 
-      const val = pill.getAttribute('data-filter-item').toLowerCase();
-
-      state.active[group].delete(val);
+      state.active[group] = null;
       pill.classList.remove('is-active');
 
       applyFilters();
@@ -212,15 +212,18 @@ export function initInspirationFilters() {
     const group = groupOfPill(pill);
     if (!group) return;
 
+    if (!(group in state.active)) return;
+
     const val = pill.getAttribute('data-filter-item').toLowerCase();
+    const wasActive = state.active[group] === val;
 
-    if (!state.active[group]) return;
+    // Single-select: clear whatever else was active in this group first.
+    getGroupPills(group).forEach((p) => p.classList.remove('is-active'));
 
-    if (state.active[group].has(val)) {
-      state.active[group].delete(val);
-      pill.classList.remove('is-active');
+    if (wasActive) {
+      state.active[group] = null;
     } else {
-      state.active[group].add(val);
+      state.active[group] = val;
       pill.classList.add('is-active');
     }
 
