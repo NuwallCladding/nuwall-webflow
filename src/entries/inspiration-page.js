@@ -12,14 +12,11 @@
 //
 // The filters/grid styling lives in src/styles/site.scss (INSPIRATION PAGE
 // section) and is served globally via site.min.css.
-//
-// Nothing else was pasted alongside the CSS, but the styles reference
-// .filter-item.is-active / .is-visible and [data-filter-group].is-open,
-// which Finsweet's List Filter doesn't toggle on its own — something has to
-// set those classes. If that logic lives in a script that wasn't included,
-// paste it here.
 import { onReady } from '../utils/ready.js';
+import { initCsSwipers } from '../core/cs-swiper.js';
+import { initInspirationFilters } from '../core/inspiration-filters.js';
 
 onReady(() => {
-  // --- paste any inspiration-page-specific interaction logic here ---
+  initCsSwipers();
+  initInspirationFilters();
 });
