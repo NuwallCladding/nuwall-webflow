@@ -44,6 +44,50 @@ export function initDrawingsViewer() {
     return library.code || String(library.id);
   }
 
+  // Lazily swap in real thumbnail URLs as cards scroll into view, so we
+  // don't fire dozens of image requests at once (the API rejects bursts).
+  function lazyLoadImages() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.dataset.src;
+          delete img.dataset.src;
+          observer.unobserve(img);
+        }
+      });
+    }, { rootMargin: '200px' });
+
+    grid.querySelectorAll('img[data-src]').forEach((img) => observer.observe(img));
+  }
+
+  // Anchor tags can't send custom headers, so bulk "download all" links are
+  // fetched here with the API key and handed to the browser as a blob.
+  function filenameFromResponse(res, fallback) {
+    const cd = res.headers.get('content-disposition') || '';
+    const match = cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+    return match ? decodeURIComponent(match[1]) : fallback;
+  }
+
+  function downloadWithApiKey(url, fallbackName) {
+    return fetch(url, { headers: { 'x-api-key': API.key } })
+      .then((res) => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const filename = filenameFromResponse(res, fallbackName);
+        return res.blob().then((blob) => ({ blob, filename }));
+      })
+      .then(({ blob, filename }) => {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+      });
+  }
+
   // Close a Webflow dropdown without leaving its internal open-state stale
   // (replay an outside pointer event so Webflow closes it itself; manual
   // class removal is a guaranteed visual fallback).
@@ -88,9 +132,9 @@ export function initDrawingsViewer() {
 
     const img = card.querySelector('.cad-lib-item-image img');
     if (img) {
-      img.src =
-        (doc.imageFile && (doc.imageFile.thumbnailURL || doc.imageFile.url)) ||
-        'https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg';
+      const realSrc = doc.imageFile && (doc.imageFile.thumbnailURL || doc.imageFile.url);
+      img.src = 'https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg';
+      if (realSrc) img.dataset.src = realSrc;
       img.alt = doc.name || '';
     }
 
@@ -156,6 +200,7 @@ export function initDrawingsViewer() {
       });
     });
 
+    lazyLoadImages();
     applyFilters();
   }
 
@@ -211,24 +256,36 @@ export function initDrawingsViewer() {
     const bulkPdf = document.querySelector('[data-role="bulk-pdf"]');
     if (bulkPdf) {
       if (library.downloadPdfUrl) {
-        bulkPdf.href = library.downloadPdfUrl;
-        bulkPdf.setAttribute('target', '_blank');
-        bulkPdf.setAttribute('rel', 'noopener');
+        bulkPdf.href = '#';
+        bulkPdf.removeAttribute('target');
         bulkPdf.style.display = '';
+        bulkPdf.onclick = (e) => {
+          e.preventDefault();
+          downloadWithApiKey(library.downloadPdfUrl, toKebab(library.name || 'drawings') + '-pdf.zip').catch((err) => {
+            console.error('[cad] bulk pdf download failed:', err);
+          });
+        };
       } else {
         bulkPdf.style.display = 'none';
+        bulkPdf.onclick = null;
       }
     }
 
     const bulkDwg = document.querySelector('[data-role="bulk-dwg"]');
     if (bulkDwg) {
       if (library.downloadDwgUrl) {
-        bulkDwg.href = library.downloadDwgUrl;
-        bulkDwg.setAttribute('target', '_blank');
-        bulkDwg.setAttribute('rel', 'noopener');
+        bulkDwg.href = '#';
+        bulkDwg.removeAttribute('target');
         bulkDwg.style.display = '';
+        bulkDwg.onclick = (e) => {
+          e.preventDefault();
+          downloadWithApiKey(library.downloadDwgUrl, toKebab(library.name || 'drawings') + '-dwg.zip').catch((err) => {
+            console.error('[cad] bulk dwg download failed:', err);
+          });
+        };
       } else {
         bulkDwg.style.display = 'none';
+        bulkDwg.onclick = null;
       }
     }
   }
