@@ -1,6 +1,6 @@
 {
   "name": "webflow-scripts",
-  "version": "1.0.0",
+  "version": "1.2.4",
   "description": "Custom JavaScript bundles for the Nu-Wall Webflow site, built with Vite and served via jsDelivr.",
   "type": "module",
   "private": true,
