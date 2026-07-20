@@ -294,7 +294,7 @@ export function initDrawingsViewer() {
   // grid/header/counter/bulk-links for that library have all been updated.
   function showContentWrapper() {
     const wrapper = document.querySelector('.cad-lib-content-wrapper');
-    if (wrapper) wrapper.style.display = '';
+    if (wrapper) wrapper.style.display = 'block';
   }
 
   // ---- filter wiring -------------------------------------------------
