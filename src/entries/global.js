@@ -7,6 +7,7 @@ import { initNavScroll } from '../core/nav-scroll.js';
 import { initPersonaSwitch } from '../core/persona-switch.js';
 import { initSampleRequest } from '../core/sample-request.js';
 import { initSiteForms } from '../core/site-forms.js';
+import { initWorkingSpecLinks } from '../core/working-spec-links.js';
 
 // Set the persona on the <html> element immediately, before paint, to avoid a
 // flash of the wrong persona.
@@ -25,4 +26,5 @@ onReady(() => {
   initPersonaSwitch();
   initSampleRequest();
   initSiteForms();
+  initWorkingSpecLinks();
 });

@@ -33,7 +33,7 @@ export function initColourTabs() {
         // Stagger the colour swatches in.
         const total = swatches.length;
         swatches.forEach((el, index) => {
-          const delay = (total - 1 - index) * 300;
+          const delay = (total - 1 - index) * 400;
           el.style.transition = 'none';
           el.style.opacity = '0';
           el.style.transform = 'translateY(1rem)';
@@ -53,7 +53,7 @@ export function initColourTabs() {
         palettes.forEach((palette, i) => {
           palette.style.animation = 'none';
           void palette.offsetHeight; // force reflow so the animation restarts
-          const delay = (totalPalettes - 1 - i) * 0.3;
+          const delay = (totalPalettes - 1 - i) * 0.4;
           palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) ${delay}s forwards`;
         });
       } else {
