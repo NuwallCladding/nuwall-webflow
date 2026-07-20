@@ -40,7 +40,7 @@ export function initColourTabs() {
 
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              el.style.zIndex = total - 1 - index;
+              el.style.zIndex = index;
               el.style.transition = 'opacity 700ms ease, transform 700ms ease';
               el.style.transitionDelay = delay + 'ms';
               el.style.opacity = '1';
@@ -53,6 +53,7 @@ export function initColourTabs() {
         const totalPalettes = palettes.length;
         palettes.forEach((palette, i) => {
           palette.style.animation = 'none';
+          palette.style.zIndex = index;
           void palette.offsetHeight; // force reflow so the animation restarts
           const delay = (totalPalettes - 1 - i) * 0.3;
           palette.style.animation = `paletteIn 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) ${delay}s forwards`;
