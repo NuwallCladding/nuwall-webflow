@@ -1,6 +1,7 @@
 // GLOBAL ENTRY — loaded site-wide via Site Settings > Custom Code > Footer.
 // Contains what every page needs: navigation, persona state, and shared forms.
 import { onReady } from '../utils/ready.js';
+import { initContactForm } from '../core/contact-form.js';
 import { initMegaMenu } from '../core/mega-menu.js';
 import { initMobileMenu } from '../core/mobile-menu.js';
 import { initNavScroll } from '../core/nav-scroll.js';
@@ -20,6 +21,7 @@ onReady(() => {
     document.body.classList.add('is-loaded');
   });
 
+  initContactForm();
   initMegaMenu();
   initMobileMenu();
   initNavScroll();

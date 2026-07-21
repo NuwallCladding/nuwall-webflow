@@ -1275,6 +1275,30 @@ select {
   display: block;
 }
 
+/* Mouse control hints — centered row under the model viewer */
+[m-controls] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  flex-shrink: 0;
+}
+[m-controls] li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+[m-controls] svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
 /* ============================================================
      COMPONENTS — BUTTON SPINNER
      Generic inline loading indicator, toggled via
@@ -1508,3 +1532,20 @@ select {
   .inspiration-item-content{
     height:100%!important;
   }
+
+  /* Working spec controls */
+
+  ul[m-controls] {
+    list-style: none;
+    margin: auto;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+ul[m-controls] li:first-child {
+    margin-left: 0;
+}
+ul[m-controls] li {
+    display: inline-block;
+    margin-left: 2rem;
+}

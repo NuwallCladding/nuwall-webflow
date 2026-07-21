@@ -1,11 +1,22 @@
 // WorkingSpec model preview: clicking a `.resource-video-wrapper` opens the
 // linked WorkingSpec 3D model — read from a `[data-role="model-code"]`
 // element in the same CMS row — in a full-screen iframe overlay.
+import scrollerSvg from '../assets/scroller.svg?raw';
+import mouseLeftSvg from '../assets/mouse-left.svg?raw';
+import mouseRightSvg from '../assets/mouse-right.svg?raw';
+
 const CLOSE_SVG =
   '<svg width="20" height="20" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">' +
   '<path d="M30.4551 14.545L14.5452 30.4549" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
   '<path d="M30.4551 30.455L14.5452 14.5451" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
   '</svg>';
+
+// Bundled as inline SVG markup (no hosted asset pipeline for this script),
+// so the control icons are embedded directly rather than pointed at a src.
+const CONTROLS_HTML =
+  '<li m-zoom="">' + scrollerSvg + 'Zoom</li>' +
+  '<li m-rotate="">' + mouseLeftSvg + 'Rotate</li>' +
+  '<li m-move="">' + mouseRightSvg + 'Move</li>';
 
 export function initWorkingSpecLinks() {
   const triggers = document.querySelectorAll('.resource-video-wrapper');
@@ -27,18 +38,18 @@ export function initWorkingSpecLinks() {
   const fileNameEl = document.createElement('p');
   fileNameEl.className = 'rl-preview-filename';
 
-  const fileTypeEl = document.createElement('p');
-  fileTypeEl.className = 'rl-preview-filetype';
-  fileTypeEl.textContent = '3D Model';
-
   const body = document.createElement('div');
   body.className = 'rl-preview-body';
 
+  const controls = document.createElement('ul');
+  controls.setAttribute('m-controls', '');
+  controls.innerHTML = CONTROLS_HTML;
+
   meta.appendChild(fileNameEl);
-  meta.appendChild(fileTypeEl);
   win.appendChild(closeBtn);
   win.appendChild(meta);
   win.appendChild(body);
+  win.appendChild(controls);
   overlay.appendChild(win);
   document.body.appendChild(overlay);
 
