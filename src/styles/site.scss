@@ -1481,3 +1481,10 @@ select {
   .inspiration-item-content{
     height:100%!important;
   }
+  .spinner {
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
