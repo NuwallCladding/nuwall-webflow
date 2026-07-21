@@ -4,6 +4,8 @@
 // holding its own drawings in `.content` plus bulk download links for the
 // whole library. No library is selected on load, so the grid stays empty
 // until the user picks one from the library filter.
+import { withButtonSpinner } from '../utils/button-spinner.js';
+
 const API = {
   url: 'https://cms.nuwall.co.nz/api/technical-collections',
   key: 'nk_99b79c6d5168840d0b11a35e1953d2c1b5f38c6d0b6970cbaf0e69abfe8424ff',
@@ -273,7 +275,9 @@ export function initDrawingsViewer() {
         bulkPdf.style.display = '';
         bulkPdf.onclick = (e) => {
           e.preventDefault();
-          downloadWithApiKey(library.downloadPdfUrl, toKebab(library.name || 'drawings') + '-pdf').catch((err) => {
+          withButtonSpinner(bulkPdf, () =>
+            downloadWithApiKey(library.downloadPdfUrl, toKebab(library.name || 'drawings') + '-pdf')
+          ).catch((err) => {
             console.error('[cad] bulk pdf download failed:', err);
           });
         };
@@ -291,7 +295,9 @@ export function initDrawingsViewer() {
         bulkDwg.style.display = '';
         bulkDwg.onclick = (e) => {
           e.preventDefault();
-          downloadWithApiKey(library.downloadDwgUrl, toKebab(library.name || 'drawings') + '-dwg').catch((err) => {
+          withButtonSpinner(bulkDwg, () =>
+            downloadWithApiKey(library.downloadDwgUrl, toKebab(library.name || 'drawings') + '-dwg')
+          ).catch((err) => {
             console.error('[cad] bulk dwg download failed:', err);
           });
         };

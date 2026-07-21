@@ -1276,6 +1276,33 @@ select {
 }
 
 /* ============================================================
+     COMPONENTS — BUTTON SPINNER
+     Generic inline loading indicator, toggled via
+     src/utils/button-spinner.js on any trigger element.
+     ============================================================ */
+.nw-spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-left: 0.5em;
+  vertical-align: -0.15em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: nw-spin 0.6s linear infinite;
+}
+
+@keyframes nw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+[aria-busy='true'] {
+  pointer-events: none;
+}
+
+/* ============================================================
      INSPIRATION PAGE
      Finsweet-driven (fs-list) project filters and CMS grid layout.
      ============================================================ */
@@ -1481,10 +1508,3 @@ select {
   .inspiration-item-content{
     height:100%!important;
   }
-  .spinner {
-  animation: spin 0.7s linear infinite;
-  flex-shrink: 0;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
