@@ -1,6 +1,6 @@
 // WorkingSpec model preview: clicking a `.resource-video-wrapper` opens the
 // linked WorkingSpec 3D model — read from a `[data-role="model-code"]`
-// element in the same CMS row — in a full-screen iframe overlay.
+// element in the same CMS row — in a full-screen iframe overlay - samples
 import scrollerSvg from '../assets/scroller.svg?raw';
 import mouseLeftSvg from '../assets/mouse-left.svg?raw';
 import mouseRightSvg from '../assets/mouse-right.svg?raw';
