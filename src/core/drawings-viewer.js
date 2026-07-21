@@ -63,17 +63,29 @@ export function initDrawingsViewer() {
 
   // Anchor tags can't send custom headers, so bulk "download all" links are
   // fetched here with the API key and handed to the browser as a blob.
-  function filenameFromResponse(res, fallback) {
+  // The bulk endpoint may return a single merged PDF or a zip of files
+  // depending on the library, so the extension is taken from the response
+  // rather than assumed.
+  const MIME_EXT = {
+    'application/pdf': '.pdf',
+    'application/zip': '.zip',
+    'application/x-zip-compressed': '.zip',
+  };
+
+  function filenameFromResponse(res, baseName) {
     const cd = res.headers.get('content-disposition') || '';
     const match = cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
-    return match ? decodeURIComponent(match[1]) : fallback;
+    if (match) return decodeURIComponent(match[1]);
+
+    const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    return baseName + (MIME_EXT[type] || '');
   }
 
-  function downloadWithApiKey(url, fallbackName) {
+  function downloadWithApiKey(url, baseName) {
     return fetch(url, { headers: { 'x-api-key': API.key } })
       .then((res) => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        const filename = filenameFromResponse(res, fallbackName);
+        const filename = filenameFromResponse(res, baseName);
         return res.blob().then((blob) => ({ blob, filename }));
       })
       .then(({ blob, filename }) => {
@@ -261,7 +273,7 @@ export function initDrawingsViewer() {
         bulkPdf.style.display = '';
         bulkPdf.onclick = (e) => {
           e.preventDefault();
-          downloadWithApiKey(library.downloadPdfUrl, toKebab(library.name || 'drawings') + '-pdf.zip').catch((err) => {
+          downloadWithApiKey(library.downloadPdfUrl, toKebab(library.name || 'drawings') + '-pdf').catch((err) => {
             console.error('[cad] bulk pdf download failed:', err);
           });
         };
@@ -279,7 +291,7 @@ export function initDrawingsViewer() {
         bulkDwg.style.display = '';
         bulkDwg.onclick = (e) => {
           e.preventDefault();
-          downloadWithApiKey(library.downloadDwgUrl, toKebab(library.name || 'drawings') + '-dwg.zip').catch((err) => {
+          downloadWithApiKey(library.downloadDwgUrl, toKebab(library.name || 'drawings') + '-dwg').catch((err) => {
             console.error('[cad] bulk dwg download failed:', err);
           });
         };
