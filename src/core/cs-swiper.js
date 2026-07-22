@@ -28,7 +28,8 @@ function getSlideContent(slide) {
   if (!data) return null;
   const d = data.dataset;
   return {
-    heading: (d.csHeading || '').trim(),
+    heading: (d.csHeadingOne || '').trim(),
+    headingTwo: (d.csHeadingTwo || '').trim(),
     description: (d.csDescription || '').trim(),
     buttonText: (d.csButtonText || '').trim(),
     buttonLink: (d.csButtonLink || '').trim(),
@@ -43,10 +44,11 @@ function setupHeroSync(name, swiper) {
   const hero = document.querySelector('.cs-hero-' + name);
   if (!hero) return;
 
-  const headingEls = Array.from(hero.querySelectorAll('.cs-hero-heading'));
+  const headingEls = Array.from(hero.querySelectorAll('.cs-hero-heading-one'));
+  const headingTwoEls = Array.from(hero.querySelectorAll('.cs-hero-heading-two'));
   const descEls = Array.from(hero.querySelectorAll('.cs-hero-description'));
   const btnEls = Array.from(hero.querySelectorAll('.cs-hero-button'));
-  const fadeTargets = [...headingEls, ...descEls, ...btnEls];
+  const fadeTargets = [...headingEls, ...headingTwoEls, ...descEls, ...btnEls];
 
   // Base state: everything starts invisible until the first paint.
   fadeTargets.forEach((node) => {
@@ -79,6 +81,7 @@ function setupHeroSync(name, swiper) {
 
   function render(content) {
     applyText(headingEls, content ? content.heading : '');
+    applyText(headingTwoEls, content ? content.headingTwo : '');
     applyText(descEls, content ? content.description : '');
     applyButton(content ? content.buttonText : '', content ? content.buttonLink : '');
   }
@@ -90,7 +93,7 @@ function setupHeroSync(name, swiper) {
   }
 
   function sig(c) {
-    return c ? c.heading + '|' + c.description + '|' + c.buttonText + '|' + c.buttonLink : '';
+    return c ? c.heading + '|' + c.headingTwo + '|' + c.description + '|' + c.buttonText + '|' + c.buttonLink : '';
   }
 
   let lastSig = null;
