@@ -389,7 +389,7 @@ export function initResourceViewer() {
 
   // ---- init ------------------------------------------------------------
 
-  fetch(API.url, { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
+  fetch(API.url+"?limit=0", { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
     .then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
