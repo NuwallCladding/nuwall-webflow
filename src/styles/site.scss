@@ -1565,3 +1565,10 @@ margin: 0 !important;
 .w-dropdown:has(.w-dropdown-list.w--open) {
   z-index: 3 !important;
 }
+
+/* ============================================================
+   RESOURCE LIBRARY — subtle fade when filtering shows/hides rows
+   ============================================================ */
+.doc-content-item {
+  transition: opacity 0.2s ease;
+}

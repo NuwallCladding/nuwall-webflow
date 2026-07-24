@@ -49,6 +49,7 @@ export function initResourceViewer() {
     selectedIds: new Set(),
     visibleCount: 16,
     itemsPerPage: 16,
+    firstRender: true,
   };
 
   // ---- helpers -------------------------------------------------------
@@ -62,6 +63,32 @@ export function initResourceViewer() {
 
   function resetPage() {
     state.visibleCount = state.itemsPerPage;
+  }
+
+  // Fades a card in/out instead of snapping display on/off. `display: none`
+  // is applied only after the fade-out finishes (matching the CSS
+  // transition duration in site.scss), so the layout still collapses once
+  // the card is actually invisible.
+  const FADE_MS = 200;
+
+  function setCardVisibility(card, visible, instant) {
+    if (instant) {
+      card.style.display = visible ? '' : 'none';
+      card.style.opacity = visible ? '1' : '0';
+      return;
+    }
+
+    if (visible) {
+      if (card.style.display === 'none') card.style.display = '';
+      requestAnimationFrame(() => {
+        card.style.opacity = '1';
+      });
+    } else {
+      card.style.opacity = '0';
+      window.setTimeout(() => {
+        if (card.style.opacity === '0') card.style.display = 'none';
+      }, FADE_MS);
+    }
   }
 
   // Anchor tags can't send custom headers, so previews/downloads/zips are
@@ -307,15 +334,15 @@ export function initResourceViewer() {
 
   function applyFilters() {
     const f = state.filters;
+    const allCards = grid.querySelectorAll('.doc-content-item:not([data-nw-template])');
     const matched = [];
 
-    grid.querySelectorAll('.doc-content-item:not([data-nw-template])').forEach((card) => {
+    allCards.forEach((card) => {
       const matchInstallation =
         !f.installationType || card.getAttribute('data-installationtypes').split(' ').indexOf(f.installationType) !== -1;
       const matchType = !f.type || card.getAttribute('data-resourcetype').split(' ').indexOf(f.type) !== -1;
       const matchSearch = !f.search || card.getAttribute('data-name').indexOf(f.search.toLowerCase()) !== -1;
 
-      card.style.display = 'none';
       if (matchInstallation && matchType && matchSearch) matched.push(card);
     });
 
@@ -324,9 +351,12 @@ export function initResourceViewer() {
     const filterActive = !!(f.installationType || f.type || f.search);
     const dropdownFilterActive = !!(f.installationType || f.type);
 
+    const visible = new Set();
     matched.forEach((card, i) => {
-      card.style.display = filterActive || i < state.visibleCount ? '' : 'none';
+      if (filterActive || i < state.visibleCount) visible.add(card);
     });
+    allCards.forEach((card) => setCardVisibility(card, visible.has(card), state.firstRender));
+    state.firstRender = false;
 
     const viewMoreWrapper = document.querySelector('.resource-lib-view-more');
     if (viewMoreWrapper) {
@@ -471,6 +501,9 @@ export function initResourceViewer() {
       state.allResources = data.docs || [];
 
       renderCards();
+
+      const seriesWrapper = document.querySelector('.series-resources-wrapper');
+      if (seriesWrapper) seriesWrapper.style.display = '';
 
       safe('installationtypes', () =>
         wireFilterDropdown('installationtypes', INSTALLATION_TYPE_OPTIONS, (v) => {
