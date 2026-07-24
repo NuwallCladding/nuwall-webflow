@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
 // Keep this list in sync with vite.config.js.
-const entries = ['global', 'drawings-viewer', 'colour-picker', 'home-page', 'colour-page', 'inspiration-page'];
+const entries = ['global', 'drawings-viewer', 'colour-picker', 'home-page', 'colour-page', 'inspiration-page', 'resources-page'];
 
 rmSync(resolve(root, 'dist'), { recursive: true, force: true });
 mkdirSync(resolve(root, 'dist'), { recursive: true });

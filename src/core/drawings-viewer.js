@@ -25,13 +25,19 @@ export function initDrawingsViewer() {
 
   const searchInput = document.querySelector('.cad-lib-search-input');
   const searchBtn = document.querySelector('[data-role="search-btn"]');
+  const categoryDropdown = document.querySelector('.resource-filter-drowpdown[data-res-filter="category"]');
+  const searchForm = searchInput ? searchInput.closest('form') : document.querySelector('.cad-lib-search-form');
 
   const state = {
     allLibraries: [],
     filters: { library: '', category: '', search: '' },
-    visibleCount: 16,
-    itemsPerPage: 16,
+    visibleCount: 20,
+    itemsPerPage: 20,
   };
+
+  // No library selected yet — grey out category filter and search until
+  // wireLibrary's click handler enables them.
+  setPreLibraryControlsDisabled(true);
 
   // ---- helpers -------------------------------------------------------
 
@@ -135,6 +141,21 @@ export function initDrawingsViewer() {
 
   function resetPage() {
     state.visibleCount = state.itemsPerPage;
+  }
+
+  // Category filter and search are meaningless before a library is picked
+  // (there's nothing loaded yet to filter/search), so keep them greyed out
+  // and inert until wireLibrary's click handler enables them.
+  function setPreLibraryControlsDisabled(disabled) {
+    if (categoryDropdown) {
+      categoryDropdown.classList.toggle('is-disabled', disabled);
+      categoryDropdown.setAttribute('aria-disabled', String(disabled));
+      const toggle = categoryDropdown.querySelector('.w-dropdown-toggle');
+      if (toggle) toggle.setAttribute('tabindex', disabled ? '-1' : '0');
+    }
+    if (searchForm) searchForm.classList.toggle('is-disabled', disabled);
+    if (searchInput) searchInput.disabled = disabled;
+    if (searchBtn) searchBtn.disabled = disabled;
   }
 
   // ---- card rendering --------------------------------------------------
@@ -350,6 +371,7 @@ export function initDrawingsViewer() {
           applyFilters();
           closeDropdown(link);
           showContentWrapper();
+          setPreLibraryControlsDisabled(false);
         });
       });
   }

@@ -1533,3 +1533,14 @@ select {
   height: 40px;
   flex-shrink: 0;
 }
+
+/* ============================================================
+   DRAWINGS VIEWER — category filter + search greyed out
+   until a library is selected
+   ============================================================ */
+.resource-filter-drowpdown.is-disabled,
+.cad-lib-search-form.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
