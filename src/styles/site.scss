@@ -1544,3 +1544,24 @@ select {
   pointer-events: none;
   cursor: not-allowed;
 }
+
+/* Target the element class with specific data attribute values */
+.centered-wrapper[data-bg-color="neutral"] {
+  background-color: #F7F5F5; /* Use a Webflow color variable */
+}
+
+form, .check-box-warpper, .checkbox-field, .checkbox-form-wrapper, .checkbox-field{
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#checkbox-form{
+  padding: 0 !important;
+margin: 0 !important;
+}
+
+.w-dropdown {z-index: 0 !important;}
+
+.w-dropdown:has(.w-dropdown-list.w--open) {
+  z-index: 3 !important;
+}
