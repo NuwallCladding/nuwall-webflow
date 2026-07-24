@@ -46,6 +46,7 @@ export function initResourceViewer() {
     allResources: [],
     filters: { installationType: '', type: '', search: '' },
     matchedIds: [],
+    selectedIds: new Set(),
     visibleCount: 16,
     itemsPerPage: 16,
   };
@@ -172,6 +173,27 @@ export function initResourceViewer() {
     }
   }
 
+  function labelFor(options, value) {
+    const opt = options.filter((o) => o.value === value)[0];
+    return opt ? opt.label : '';
+  }
+
+  // Builds "Vertical Over Cavity - Compliance - Search "windows"" from
+  // whichever of the 3 filters are active, in that fixed order.
+  function updateFilterHeader() {
+    const el = document.querySelector('.filter-header');
+    if (!el) return;
+
+    const f = state.filters;
+    const parts = [];
+    if (f.installationType) parts.push(labelFor(INSTALLATION_TYPE_OPTIONS, f.installationType));
+    if (f.type) parts.push(labelFor(RESOURCE_TYPE_OPTIONS, f.type));
+    if (f.search) parts.push('Search "' + f.search + '"');
+
+    el.textContent = parts.join(' - ');
+    el.style.display = parts.length ? '' : 'none';
+  }
+
   // ---- card rendering --------------------------------------------------
 
   function makeCard(doc) {
@@ -214,12 +236,56 @@ export function initResourceViewer() {
       }
     }
 
+    const checkbox = card.querySelector('.checkbox-item');
+    if (checkbox) {
+      checkbox.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSelection(doc.id, checkbox);
+      });
+    }
+
     card.setAttribute('data-id', doc.id);
     card.setAttribute('data-installationtypes', (doc.installationTypes || []).join(' '));
     card.setAttribute('data-resourcetype', (doc.resourceType || []).join(' '));
     card.setAttribute('data-name', (doc.title || '').toLowerCase());
 
     return card;
+  }
+
+  // ---- bulk selection --------------------------------------------------
+
+  function toggleSelection(id, checkboxEl) {
+    const key = String(id);
+    if (state.selectedIds.has(key)) {
+      state.selectedIds.delete(key);
+      checkboxEl.classList.remove('w--redirected-checked');
+    } else {
+      state.selectedIds.add(key);
+      checkboxEl.classList.add('w--redirected-checked');
+    }
+    updateSelectionBar();
+  }
+
+  function updateSelectionBar() {
+    const bar = document.querySelector('.selection-bulk-download-bar');
+    const btn = document.querySelector('.selection-bulk-download-btn');
+    const count = state.selectedIds.size;
+
+    if (bar) bar.style.display = count ? '' : 'none';
+    if (btn) btn.textContent = 'Download (' + count + ') Selected';
+  }
+
+  function wireSelectionDownload() {
+    const btn = document.querySelector('.selection-bulk-download-btn');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!state.selectedIds.size) return;
+      withButtonSpinner(btn, () => downloadZipWithApiKey(Array.from(state.selectedIds))).catch((err) => {
+        console.error('[resources] selection zip download failed:', err);
+      });
+    });
   }
 
   function renderCards() {
@@ -276,6 +342,8 @@ export function initResourceViewer() {
       const counterEl = document.querySelector('.library-drawing-counter');
       if (counterEl) counterEl.textContent = matched.length + ' Resources';
     }
+
+    updateFilterHeader();
   }
 
   // ---- filter wiring -------------------------------------------------
@@ -389,6 +457,11 @@ export function initResourceViewer() {
 
   // ---- init ------------------------------------------------------------
 
+  // Hidden until a checkbox is ticked, before the fetch even resolves, so
+  // it never flashes visible on load.
+  const selectionBar = document.querySelector('.selection-bulk-download-bar');
+  if (selectionBar) selectionBar.style.display = 'none';
+
   fetch(API.url+"?limit=0", { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
     .then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -412,6 +485,7 @@ export function initResourceViewer() {
       safe('search', wireSearch);
       safe('view-more', wireViewMore);
       safe('zip-download', wireZipDownload);
+      safe('selection-download', wireSelectionDownload);
 
       console.log('[resources] loaded ' + state.allResources.length + ' resources');
     })
