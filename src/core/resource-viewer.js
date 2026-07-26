@@ -38,6 +38,16 @@ export function initResourceViewer() {
   template.setAttribute('data-nw-template', 'true');
   template.style.display = 'none';
 
+  // Optional: groups the unfiltered list into "Compliance", "Brochures", etc.
+  // rows. Feature is skipped entirely if the template isn't present.
+  const headerTemplate = grid.querySelector('.doc-content-header');
+  if (headerTemplate) {
+    headerTemplate.setAttribute('data-nw-template', 'true');
+    headerTemplate.style.display = 'none';
+  } else {
+    console.warn('[resources] header template not found — category headers disabled');
+  }
+
   const searchInput = document.querySelector('.cad-lib-search-input');
   const searchBtn = document.querySelector('[data-role="search-btn"]');
   const searchForm = searchInput ? searchInput.closest('form') : document.querySelector('.cad-lib-search-form');
@@ -47,8 +57,8 @@ export function initResourceViewer() {
     filters: { installationType: '', type: '', search: '' },
     matchedIds: [],
     selectedIds: new Set(),
-    visibleCount: 16,
-    itemsPerPage: 16,
+    visibleCount: 30,
+    itemsPerPage: 30,
     firstRender: true,
   };
 
@@ -275,9 +285,37 @@ export function initResourceViewer() {
     card.setAttribute('data-id', doc.id);
     card.setAttribute('data-installationtypes', (doc.installationTypes || []).join(' '));
     card.setAttribute('data-resourcetype', (doc.resourceType || []).join(' '));
+    card.setAttribute('data-category', primaryCategory(doc));
     card.setAttribute('data-name', (doc.title || '').toLowerCase());
 
     return card;
+  }
+
+  // A resource can carry multiple resourceType tags; the first one decides
+  // which "Compliance" / "Brochures" group it's sorted and headered under.
+  function primaryCategory(doc) {
+    return (doc.resourceType && doc.resourceType[0]) || '';
+  }
+
+  function sortByResourceType(list) {
+    const order = RESOURCE_TYPE_OPTIONS.map((o) => o.value);
+    return list.slice().sort((a, b) => {
+      const aIdx = order.indexOf(primaryCategory(a));
+      const bIdx = order.indexOf(primaryCategory(b));
+      return (aIdx === -1 ? order.length : aIdx) - (bIdx === -1 ? order.length : bIdx);
+    });
+  }
+
+  function makeHeader(category) {
+    const header = headerTemplate.cloneNode(true);
+    header.removeAttribute('data-nw-template');
+    header.style.display = '';
+    header.setAttribute('data-category', category);
+
+    const labelEl = header.querySelector('.category-header');
+    if (labelEl) labelEl.textContent = labelFor(RESOURCE_TYPE_OPTIONS, category) || category;
+
+    return header;
   }
 
   // ---- bulk selection --------------------------------------------------
@@ -317,9 +355,16 @@ export function initResourceViewer() {
 
   function renderCards() {
     grid.querySelectorAll('.doc-content-item:not([data-nw-template])').forEach((el) => el.remove());
+    grid.querySelectorAll('.doc-content-header:not([data-nw-template])').forEach((el) => el.remove());
 
-    state.allResources.forEach((doc) => {
+    let lastCategory = null;
+    sortByResourceType(state.allResources).forEach((doc) => {
       try {
+        const category = primaryCategory(doc);
+        if (headerTemplate && category !== lastCategory) {
+          grid.appendChild(makeHeader(category));
+          lastCategory = category;
+        }
         const card = makeCard(doc);
         if (card) grid.appendChild(card);
       } catch (e) {
@@ -356,6 +401,19 @@ export function initResourceViewer() {
       if (filterActive || i < state.visibleCount) visible.add(card);
     });
     allCards.forEach((card) => setCardVisibility(card, visible.has(card), state.firstRender));
+
+    // Category header rows: hidden entirely once a resourceType filter is
+    // picked; otherwise a header shows only if its group has a visible card.
+    const categoryFilterActive = !!f.type;
+    const visibleCategories = new Set();
+    if (!categoryFilterActive) {
+      visible.forEach((card) => visibleCategories.add(card.getAttribute('data-category')));
+    }
+    grid.querySelectorAll('.doc-content-header:not([data-nw-template])').forEach((header) => {
+      const show = !categoryFilterActive && visibleCategories.has(header.getAttribute('data-category'));
+      setCardVisibility(header, show, state.firstRender);
+    });
+
     state.firstRender = false;
 
     const viewMoreWrapper = document.querySelector('.resource-lib-view-more');
@@ -492,7 +550,7 @@ export function initResourceViewer() {
   const selectionBar = document.querySelector('.selection-bulk-download-bar');
   if (selectionBar) selectionBar.style.display = 'none';
 
-  fetch(API.url+"?limit=0", { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
+  fetch(API.url+"?limit=0&sort=resourceType", { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
     .then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
@@ -502,8 +560,8 @@ export function initResourceViewer() {
 
       renderCards();
 
-      const seriesWrapper = document.querySelector('.series-resources-wrapper');
-      if (seriesWrapper) seriesWrapper.style.display = '';
+      const wrapper = document.querySelector('.resources-wrapper');
+      if (wrapper) wrapper.style.display = '';
 
       safe('installationtypes', () =>
         wireFilterDropdown('installationtypes', INSTALLATION_TYPE_OPTIONS, (v) => {
@@ -519,8 +577,6 @@ export function initResourceViewer() {
       safe('view-more', wireViewMore);
       safe('zip-download', wireZipDownload);
       safe('selection-download', wireSelectionDownload);
-
-      console.log('[resources] loaded ' + state.allResources.length + ' resources');
     })
     .catch((err) => {
       console.error('[resources] fetch failed:', err);
