@@ -27,14 +27,17 @@ const RESOURCE_TYPE_OPTIONS = [
 ];
 
 export function initResourceViewer() {
-  const grid = document.querySelector('.doc-content-wrapper');
-  if (!grid) return;
-
-  const template = grid.querySelector('.doc-content-item');
+  // The grid is the item template's parent, not a fixed class — the item's
+  // own inner wrapper is also named `.doc-content-wrapper`, so selecting by
+  // that class would grab the wrong (nested) element.
+  const template = document.querySelector('.doc-content-item');
   if (!template) {
     console.warn('[resources] template not found — resource viewer aborted');
     return;
   }
+  const grid = template.parentElement;
+  if (!grid) return;
+
   template.setAttribute('data-nw-template', 'true');
   template.style.display = 'none';
 
