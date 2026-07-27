@@ -553,6 +553,11 @@ export function initResourceViewer() {
   const selectionBar = document.querySelector('.selection-bulk-download-bar');
   if (selectionBar) selectionBar.style.display = 'none';
 
+  // Markup ships with this hidden (avoids a flash of empty state before JS
+  // runs) — reveal it as soon as the viewer takes over, not after the fetch.
+  const wrapper = document.querySelector('.resources-wrapper');
+  if (wrapper) wrapper.style.display = '';
+
   fetch(API.url+"?limit=0&sort=resourceType", { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
     .then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -562,9 +567,6 @@ export function initResourceViewer() {
       state.allResources = data.docs || [];
 
       renderCards();
-
-      const wrapper = document.querySelector('.resources-wrapper');
-      if (wrapper) wrapper.style.display = '';
 
       safe('installationtypes', () =>
         wireFilterDropdown('installationtypes', INSTALLATION_TYPE_OPTIONS, (v) => {
