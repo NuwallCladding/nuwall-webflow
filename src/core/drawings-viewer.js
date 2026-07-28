@@ -8,6 +8,7 @@ import { withButtonSpinner } from '../utils/button-spinner.js';
 
 const API = {
   url: 'https://cms.nuwall.co.nz/api/technical-collections',
+  zipUrl: 'https://cms.nuwall.co.nz/api/technical-collections/download-zip',
   key: 'nk_99b79c6d5168840d0b11a35e1953d2c1b5f38c6d0b6970cbaf0e69abfe8424ff',
 };
 
@@ -27,10 +28,13 @@ export function initDrawingsViewer() {
   const searchBtn = document.querySelector('[data-role="search-btn"]');
   const categoryDropdown = document.querySelector('.resource-filter-drowpdown[data-res-filter="category"]');
   const searchForm = searchInput ? searchInput.closest('form') : document.querySelector('.cad-lib-search-form');
+  const categoryDdWrapper = document.querySelector('.cad-categories-dd');
+  const searchWrapper = document.querySelector('.cad-lib-search-wrapper');
 
   const state = {
     allLibraries: [],
     filters: { library: '', category: '', search: '' },
+    selectedIds: new Set(),
     visibleCount: 20,
     itemsPerPage: 20,
   };
@@ -108,6 +112,29 @@ export function initDrawingsViewer() {
       });
   }
 
+  function downloadZipWithApiKey(ids, format) {
+    return fetch(API.zipUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API.key },
+      body: JSON.stringify({ ids, format }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const filename = filenameFromResponse(res, 'nuwall-drawings');
+        return res.blob().then((blob) => ({ blob, filename }));
+      })
+      .then(({ blob, filename }) => {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+      });
+  }
+
   // Close a Webflow dropdown without leaving its internal open-state stale
   // (replay an outside pointer event so Webflow closes it itself; manual
   // class removal is a guaranteed visual fallback).
@@ -156,6 +183,18 @@ export function initDrawingsViewer() {
     if (searchForm) searchForm.classList.toggle('is-disabled', disabled);
     if (searchInput) searchInput.disabled = disabled;
     if (searchBtn) searchBtn.disabled = disabled;
+
+    // These wrappers ship with opacity: 0 in markup so they're invisible
+    // until a library is selected; fade them in/out alongside the disabled
+    // state instead of leaving them permanently hidden.
+    if (categoryDdWrapper) {
+      categoryDdWrapper.style.opacity = disabled ? '0' : '1';
+      categoryDdWrapper.style.pointerEvents = disabled ? 'none' : '';
+    }
+    if (searchWrapper) {
+      searchWrapper.style.opacity = disabled ? '0' : '1';
+      searchWrapper.style.pointerEvents = disabled ? 'none' : '';
+    }
   }
 
   // ---- card rendering --------------------------------------------------
@@ -214,6 +253,16 @@ export function initDrawingsViewer() {
 
     if (!hasPdf && !hasDwg) return null;
 
+    const checkbox = card.querySelector('.checkbox-item');
+    if (checkbox) {
+      checkbox.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSelection(doc.id, checkbox);
+      });
+    }
+
+    card.setAttribute('data-id', doc.id);
     card.setAttribute('data-library', libraryValue(library));
     card.setAttribute('data-category', (doc.cat || []).join(' '));
     card.setAttribute('data-name', (doc.name || '').toLowerCase());
@@ -237,6 +286,49 @@ export function initDrawingsViewer() {
 
     lazyLoadImages();
     applyFilters();
+  }
+
+  // ---- bulk selection --------------------------------------------------
+
+  function toggleSelection(id, checkboxEl) {
+    const key = String(id);
+    if (state.selectedIds.has(key)) {
+      state.selectedIds.delete(key);
+      checkboxEl.classList.remove('w--redirected-checked');
+    } else {
+      state.selectedIds.add(key);
+      checkboxEl.classList.add('w--redirected-checked');
+    }
+    updateSelectionBar();
+  }
+
+  function updateSelectionBar() {
+    const bar = document.querySelector('.selection-bulk-download-bar');
+    const pdfBtn = document.querySelector('.selection-bulk-download-btn-pdf');
+    const dwgBtn = document.querySelector('.selection-bulk-download-btn-dwg');
+    const count = state.selectedIds.size;
+
+    if (bar) bar.style.display = count ? '' : 'none';
+    if (pdfBtn) pdfBtn.textContent = 'Download (' + count + ') Selected';
+    if (dwgBtn) dwgBtn.textContent = 'Download (' + count + ') Selected';
+  }
+
+  function wireSelectionDownload() {
+    const buttons = [
+      { el: document.querySelector('.selection-bulk-download-btn-pdf'), format: 'pdf' },
+      { el: document.querySelector('.selection-bulk-download-btn-dwg'), format: 'dwg' },
+    ];
+
+    buttons.forEach(({ el: btn, format }) => {
+      if (!btn) return;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!state.selectedIds.size) return;
+        withButtonSpinner(btn, () => downloadZipWithApiKey(Array.from(state.selectedIds), format)).catch((err) => {
+          console.error('[cad] selection zip download failed:', err);
+        });
+      });
+    });
   }
 
   // ---- filtering ---------------------------------------------------------
@@ -477,6 +569,11 @@ export function initDrawingsViewer() {
 
   // ---- init ------------------------------------------------------------
 
+  // Hidden until a checkbox is ticked, before the fetch even resolves, so
+  // it never flashes visible on load.
+  const selectionBar = document.querySelector('.selection-bulk-download-bar');
+  if (selectionBar) selectionBar.style.display = 'none';
+
   fetch(API.url, { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
     .then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -491,6 +588,7 @@ export function initDrawingsViewer() {
       safe('category', wireCategory);
       safe('search', wireSearch);
       safe('view-more', wireViewMore);
+      safe('selection-download', wireSelectionDownload);
 
       console.log('[cad] loaded ' + state.allLibraries.length + ' libraries');
     })
