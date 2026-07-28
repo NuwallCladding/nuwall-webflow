@@ -486,17 +486,18 @@ export function initResourceViewer() {
     });
   }
 
-  function wireSearch() {
-    const MIN_CHARS = 4;
-    let debounceTimer;
+  const SEARCH_MIN_CHARS = 1;
 
-    function runSearch(value) {
-      const q = (value || '').trim();
-      // Only treat as an active search at 4+ chars; otherwise clear it.
-      state.filters.search = q.length >= MIN_CHARS ? q : '';
-      resetPage();
-      applyFilters();
-    }
+  function runSearch(value) {
+    const q = (value || '').trim();
+    // Only treat as an active search at 1+ chars; otherwise clear it.
+    state.filters.search = q.length >= SEARCH_MIN_CHARS ? q : '';
+    resetPage();
+    applyFilters();
+  }
+
+  function wireSearch() {
+    let debounceTimer;
 
     if (searchInput) {
       searchInput.addEventListener('input', () => {
@@ -522,6 +523,16 @@ export function initResourceViewer() {
         runSearch(searchInput ? searchInput.value : '');
       });
     }
+  }
+
+  // Lets a link like "?searchTerm=epd" preload the search box once the
+  // resources have loaded, so a shared URL can jump straight to a filtered
+  // view without the user retyping the search.
+  function preloadSearchFromQuery() {
+    const term = new URLSearchParams(window.location.search).get('searchTerm');
+    if (!term) return;
+    if (searchInput) searchInput.value = term;
+    runSearch(term);
   }
 
   function wireViewMore() {
@@ -582,6 +593,7 @@ export function initResourceViewer() {
       safe('view-more', wireViewMore);
       safe('zip-download', wireZipDownload);
       safe('selection-download', wireSelectionDownload);
+      safe('preload-search', preloadSearchFromQuery);
     })
     .catch((err) => {
       console.error('[resources] fetch failed:', err);

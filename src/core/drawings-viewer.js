@@ -519,17 +519,18 @@ export function initDrawingsViewer() {
     });
   }
 
-  function wireSearch() {
-    const MIN_CHARS = 4;
-    let debounceTimer;
+  const SEARCH_MIN_CHARS = 4;
 
-    function runSearch(value) {
-      const q = (value || '').trim();
-      // Only treat as an active search at 4+ chars; otherwise clear it.
-      state.filters.search = q.length >= MIN_CHARS ? q : '';
-      resetPage();
-      applyFilters();
-    }
+  function runSearch(value) {
+    const q = (value || '').trim();
+    // Only treat as an active search at 4+ chars; otherwise clear it.
+    state.filters.search = q.length >= SEARCH_MIN_CHARS ? q : '';
+    resetPage();
+    applyFilters();
+  }
+
+  function wireSearch() {
+    let debounceTimer;
 
     if (searchInput) {
       searchInput.addEventListener('input', () => {
@@ -555,6 +556,17 @@ export function initDrawingsViewer() {
         runSearch(searchInput ? searchInput.value : '');
       });
     }
+  }
+
+  // Lets a link like "?searchTerm=epd" preload the search box once the
+  // libraries have loaded. Results still won't show until a library is
+  // picked (search alone never populates the grid), but the term is ready
+  // to go the moment the user does.
+  function preloadSearchFromQuery() {
+    const term = new URLSearchParams(window.location.search).get('searchTerm');
+    if (!term) return;
+    if (searchInput) searchInput.value = term;
+    runSearch(term);
   }
 
   function wireViewMore() {
@@ -589,6 +601,7 @@ export function initDrawingsViewer() {
       safe('search', wireSearch);
       safe('view-more', wireViewMore);
       safe('selection-download', wireSelectionDownload);
+      safe('preload-search', preloadSearchFromQuery);
 
       console.log('[cad] loaded ' + state.allLibraries.length + ' libraries');
     })
