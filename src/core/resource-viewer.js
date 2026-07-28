@@ -4,6 +4,7 @@
 // visible on load and paginated with "view more". Populating either dropdown
 // filter switches into "show all matches + bulk zip" mode.
 import { withButtonSpinner } from '../utils/button-spinner.js';
+import { openWorkingSpecPreview } from './working-spec-links.js';
 
 const API = {
   url: 'https://cms.nuwall.co.nz/api/resources',
@@ -24,6 +25,7 @@ const RESOURCE_TYPE_OPTIONS = [
   { label: 'Care & Maintenance', value: 'care-maintenance' },
   { label: 'Colour & Finishes', value: 'colour-finishes' },
   { label: 'Brochures', value: 'brochures' },
+  { label: 'Interactive Installation Videos', value: 'interactive-installation-videos' }
 ];
 
 export function initResourceViewer() {
@@ -246,7 +248,15 @@ export function initResourceViewer() {
 
     const previewLink = card.querySelector('.rl-preview-asset');
     if (previewLink) {
-      if (doc.viewUrl) {
+      if (doc.modelCode) {
+        // Interactive installation videos open the WorkingSpec 3D model
+        // overlay instead of the usual blob preview — no fetch involved.
+        previewLink.href = '#';
+        previewLink.onclick = (e) => {
+          e.preventDefault();
+          openWorkingSpecPreview(doc.modelCode, doc.title);
+        };
+      } else if (doc.viewUrl) {
         previewLink.href = '#';
         previewLink.onclick = (e) => {
           e.preventDefault();
@@ -290,6 +300,7 @@ export function initResourceViewer() {
     card.setAttribute('data-resourcetype', (doc.resourceType || []).join(' '));
     card.setAttribute('data-category', primaryCategory(doc));
     card.setAttribute('data-name', (doc.title || '').toLowerCase());
+    if (doc.modelCode) card.setAttribute('data-modelcode', doc.modelCode);
 
     return card;
   }

@@ -1575,3 +1575,56 @@ margin: 0 !important;
 .doc-content-item {
   transition: opacity 0.2s ease;
 }
+
+/* ============================================================
+   PROFILES PAGE
+   Series name list / dropdown driving profile image and item
+   visibility, via src/core/profile-switcher.js
+   ============================================================ */
+
+/* ── Profile images (flat CMS list, matched by data-profile-image) ── */
+.profile_images .w-dyn-item {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.61, 1, 0.88, 1);
+}
+.profile_images .w-dyn-item.is-active {
+  opacity: 1;
+}
+
+/* If data-profile-image sits on a child img instead of the .w-dyn-item,
+   use these two rules as well (harmless to leave in): */
+.profile_images .w-dyn-item > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Series name list ── */
+.series_names .w-dyn-item > h3 {
+  color: var(--_brand-colors---brand-grey-off-white);
+  transition: opacity 0.5s cubic-bezier(0.61, 1, 0.88, 1);
+}
+.series_names .w-dyn-item.is-active > h3 {
+  color: var(--_brand-colors---brand-of-white);
+}
+.series_names .w-dyn-item > .underline {
+  width: 0px;
+  transform-origin: left center;
+  transition: width 0.3s cubic-bezier(0.61, 1, 0.88, 1);
+}
+.series_names .w-dyn-item.is-active > .underline {
+  width: 100%;
+  transition: width 0.6s cubic-bezier(0.61, 1, 0.88, 1);
+}
+
+/* ── Mobile dropdown visibility ── */
+@media screen and (min-width: 480px) {
+  #series-dropdown {
+    display: none !important;
+  }
+}

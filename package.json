@@ -1,6 +1,6 @@
 {
   "name": "webflow-scripts",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "Custom JavaScript bundles for the Nu-Wall Webflow site, built with Vite and served via jsDelivr.",
   "type": "module",
   "private": true,
@@ -17,6 +17,7 @@
     "vite": "^6.0.7"
   },
   "dependencies": {
+    "gsap": "^3.15.0",
     "swiper": "^12.2.0"
   }
 }

@@ -1,9 +1,16 @@
-// WorkingSpec model preview: clicking a `.resource-video-wrapper` opens the
-// linked WorkingSpec 3D model — read from a `[data-role="model-code"]`
-// element in the same CMS row — in a full-screen iframe overlay - samples
+// WorkingSpec model preview: opens a linked WorkingSpec 3D model in a
+// full-screen iframe overlay. Two entry points share one overlay singleton:
+//  - initWorkingSpecLinks(): wires static `.resource-video-wrapper` triggers
+//    (Webflow CMS-rendered rows), reading the model code from a
+//    `[data-role="model-code"]` element in the same row.
+//  - openWorkingSpecPreview(modelCode, fileName): called directly by other
+//    modules (e.g. the resources library viewer) that already have the model
+//    code from fetched JSON, with no DOM row to read it from.
 import scrollerSvg from '../assets/scroller.svg?raw';
 import mouseLeftSvg from '../assets/mouse-left.svg?raw';
 import mouseRightSvg from '../assets/mouse-right.svg?raw';
+
+const API_EMBED_URL = 'https://workingspec.com/embed/';
 
 const CLOSE_SVG =
   '<svg width="20" height="20" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -18,9 +25,11 @@ const CONTROLS_HTML =
   '<li m-rotate="">' + mouseLeftSvg + 'Rotate</li>' +
   '<li m-move="">' + mouseRightSvg + 'Move</li>';
 
-export function initWorkingSpecLinks() {
-  const triggers = document.querySelectorAll('.resource-video-wrapper');
-  if (!triggers.length) return;
+// Lazily built once per bundle and reused by every caller in that bundle.
+let overlayApi = null;
+
+function getOverlay() {
+  if (overlayApi) return overlayApi;
 
   const overlay = document.createElement('div');
   overlay.className = 'rl-preview-overlay';
@@ -53,21 +62,6 @@ export function initWorkingSpecLinks() {
   overlay.appendChild(win);
   document.body.appendChild(overlay);
 
-  function openPreview(modelUrl, fileName) {
-    body.innerHTML = '';
-
-    const iframe = document.createElement('iframe');
-    iframe.src = modelUrl;
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('allowfullscreen', 'allowfullscreen');
-    body.appendChild(iframe);
-
-    fileNameEl.textContent = fileName || 'Installation Video';
-
-    overlay.classList.add('is-visible');
-    document.body.style.overflow = 'hidden';
-  }
-
   function closePreview() {
     overlay.classList.remove('is-visible');
     document.body.style.overflow = '';
@@ -84,6 +78,36 @@ export function initWorkingSpecLinks() {
     if (e.key === 'Escape' && overlay.classList.contains('is-visible')) closePreview();
   });
 
+  overlayApi = { overlay, body, fileNameEl };
+  return overlayApi;
+}
+
+// Opens the full-screen WorkingSpec preview for a given model code. Safe to
+// call from any module, regardless of whether the trigger came from a static
+// CMS row or a dynamically rendered card.
+export function openWorkingSpecPreview(modelCode, fileName) {
+  const code = (modelCode || '').trim();
+  if (!code) return;
+
+  const { overlay, body, fileNameEl } = getOverlay();
+
+  body.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.src = API_EMBED_URL + code;
+  iframe.setAttribute('frameborder', '0');
+  iframe.setAttribute('allowfullscreen', 'allowfullscreen');
+  body.appendChild(iframe);
+
+  fileNameEl.textContent = fileName || 'Installation Video';
+
+  overlay.classList.add('is-visible');
+  document.body.style.overflow = 'hidden';
+}
+
+export function initWorkingSpecLinks() {
+  const triggers = document.querySelectorAll('.resource-video-wrapper');
+  if (!triggers.length) return;
+
   triggers.forEach((trigger) => {
     trigger.addEventListener('click', (e) => {
       e.preventDefault();
@@ -94,7 +118,7 @@ export function initWorkingSpecLinks() {
       const fileName = trigger.getAttribute('data-file-name');
 
       if (codeEl) {
-        openPreview('https://workingspec.com/embed/' + codeEl.textContent.trim(), fileName);
+        openWorkingSpecPreview(codeEl.textContent, fileName);
       }
     });
   });
