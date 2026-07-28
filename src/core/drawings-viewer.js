@@ -563,7 +563,8 @@ export function initDrawingsViewer() {
   // picked (search alone never populates the grid), but the term is ready
   // to go the moment the user does.
   function preloadSearchFromQuery() {
-    const term = new URLSearchParams(window.location.search).get('searchTerm');
+    const params = new URLSearchParams(window.location.search);
+    const term = [...params].find(([k]) => k.toLowerCase() === "searchterm")?.[1] ?? null;
     if (!term) return;
     if (searchInput) searchInput.value = term;
     runSearch(term);

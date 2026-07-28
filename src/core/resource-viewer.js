@@ -529,7 +529,8 @@ export function initResourceViewer() {
   // resources have loaded, so a shared URL can jump straight to a filtered
   // view without the user retyping the search.
   function preloadSearchFromQuery() {
-    const term = new URLSearchParams(window.location.search).get('searchTerm');
+    const params = new URLSearchParams(window.location.search);
+    const term = [...params].find(([k]) => k.toLowerCase() === "searchterm")?.[1] ?? null;
     if (!term) return;
     if (searchInput) searchInput.value = term;
     runSearch(term);
