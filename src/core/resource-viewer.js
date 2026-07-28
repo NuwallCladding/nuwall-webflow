@@ -341,7 +341,7 @@ export function initResourceViewer() {
     const count = state.selectedIds.size;
 
     if (bar) bar.style.display = count ? '' : 'none';
-    if (btn) btn.textContent = 'Download (' + count + ') Selected';
+    if (btn) btn.textContent = 'Download ' + count + ' Selected';
   }
 
   function wireSelectionDownload() {
