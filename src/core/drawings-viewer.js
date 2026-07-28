@@ -306,11 +306,11 @@ export function initDrawingsViewer() {
     const bar = document.querySelector('.selection-bulk-download-bar');
     const pdfBtn = document.querySelector('.selection-bulk-download-btn-pdf');
     const dwgBtn = document.querySelector('.selection-bulk-download-btn-dwg');
-    const numberDisplay = document.querySelector('.file-number-display');
     const count = state.selectedIds.size;
 
     if (bar) bar.style.display = count ? '' : 'none';
-    if (numberDisplay) numberDisplay.textContent =  count + ' Selected';
+    if (pdfBtn) pdfBtn.textContent =  'Download (' + count + ') Selected PDF';
+    if (dwgBtn) dwgBtn.textContent =  'Download (' + count + ') Selected DWG';
   }
 
   function wireSelectionDownload() {
