@@ -1576,6 +1576,10 @@ margin: 0 !important;
   transition: opacity 0.2s ease;
 }
 
+.doc-content-item > p:is(.large--body) {
+  margin-top: 1px;
+}
+
 /* ============================================================
    PROFILES PAGE
    Series name list / dropdown driving profile image and item
@@ -1636,12 +1640,6 @@ margin: 0 !important;
    src/core/series-navigation.js and src/core/colour-finish-viewer.js
    ============================================================ */
 
-.series-tab-item.is-active {
-  border-bottom: 0;
-}
-.w-dyn-item:has(+ .w-dyn-item > .series-tab-item.is-active) > .series-tab-item {
-  border-bottom: 0;
-}
 
 /* ── Colour & finish grid ── */
 .resource-spec-content {
@@ -1801,10 +1799,6 @@ margin: 0 !important;
   transition: opacity 700ms ease;
 }
 
-.resrouces-wrap .documentation-item:first-child {
-  border-top: 1px solid var(--_brand-colors---brand-black);
-}
-
 /* ── Profile slider ── */
 .series-slider-item .swiper.cs-swiper {
   max-height: 70vh;
@@ -1835,8 +1829,33 @@ margin: 0 !important;
 .tab-content.is-active {
   display: block;
 }
+
+.spec-content:last-child {
+  margin-bottom: 30px;
+}
+
+.spec-detail .tab-content > p:first-child,
+.spec-detail .tab-content .w-richtext > p:first-child {
+  margin-top: -4px;
+}
+
 .resource-item:last-child {
   border-bottom: 1px solid var(--_brand-colors---brand-black);
+}
+
+/* ── Tab details panel (slide down on open, via series-profile-slider.js) ── */
+.series-tab-details {
+  display: block;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.5s cubic-bezier(0.61, 1, 0.88, 1);
+}
+
+.series-tab-container {
+  border-bottom: 0.5px solid var(--_brand-colors---brand-black);
+}
+.series-list:last-child {
+  border-bottom: none;
 }
 
 .swiper-thumb-wrapper {
@@ -1952,4 +1971,19 @@ margin: 0 !important;
   transition:
     height 600ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 800ms ease;
+}
+
+/* ============================================================
+   ACCORDION (generic, site-wide)
+   Any `.accordion-item` / `.accordion-trigger` / `.accordion-content`
+   set, via src/core/accordion.js
+   ============================================================ */
+.accordion-content {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.accordion-trigger {
+  cursor: pointer;
 }

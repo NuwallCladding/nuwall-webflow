@@ -10,7 +10,12 @@ const COLLECTION_ID = '69bb35ffbadbe7831efb4785';
 const IMAGE_FIELD = 'profile---gallery';
 const SPECS_FIELD = 'profile---specifications';
 
-const PLAY_SVG = '<div class="label_round"><h6 class="label_text">3d videos</h6></div>';
+const PLAY_SVG =
+  '<svg width="68" height="68" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+  '<rect x="0.5" y="0.5" width="33" height="33" rx="16.5" fill="#2A2D2B"></rect>' +
+  '<rect x="0.5" y="0.5" width="33" height="33" rx="16.5" stroke="none"></rect>' +
+  '<path d="M13.5 10.8L23.5 17L13.5 23.2V10.8Z" fill="#F3EDE3"></path>' +
+  '</svg>';
 
 function thumbWithImage(url) {
   return (
@@ -32,6 +37,7 @@ export function initSeriesProfileSlider() {
   const tabItems = document.querySelectorAll('.series-tab-item');
   const sliderItems = document.querySelectorAll('.series-slider-item');
   const specItems = document.querySelectorAll('.spec-slider-item');
+  const tabDetails = document.querySelectorAll('.series-tab-details');
   if (!sliderItems.length) return;
 
   // ── 1. Fetch & inject images ──
@@ -153,6 +159,12 @@ export function initSeriesProfileSlider() {
           swiper.slideTo(0, 0);
         }
       });
+    });
+
+    tabDetails.forEach((el) => {
+      const isActive = el.getAttribute('data-tab-details') === tabId;
+      el.classList.toggle('is-active', isActive);
+      el.style.maxHeight = isActive ? el.scrollHeight + 'px' : '0px';
     });
   }
 
