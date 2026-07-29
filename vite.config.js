@@ -12,6 +12,7 @@ const entries = {
   'inspiration-page': 'src/entries/inspiration-page.js',
   'resources-page': 'src/entries/resources-page.js',
   'profiles-page': 'src/entries/profiles-page.js',
+  'series-page': 'src/entries/series-page.js',
 };
 
 // IIFE output can't share code chunks between entries, so we build ONE entry

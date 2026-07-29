@@ -25,10 +25,17 @@ const RESOURCE_TYPE_OPTIONS = [
   { label: 'Care & Maintenance', value: 'care-maintenance' },
   { label: 'Colour & Finishes', value: 'colour-finishes' },
   { label: 'Brochures', value: 'brochures' },
-  { label: 'Interactive Installation Videos', value: 'interactive-installation-videos' }
+  { label: 'Interactive Installation Videos', value: 'interactive-installation-video' }
 ];
 
-export function initResourceViewer() {
+// `options.profileSeries` filters the fetched list to one profile series
+// (CMS `profileSeries.title`), for reuse on a profile series page. If
+// omitted, it falls back to a `data-profile-series` attribute on
+// `.resources-wrapper` — set that in Webflow (bound to the CMS series field)
+// on a shared profile template so every series page filters itself without
+// any page-specific code. Leaving both unset preserves the unfiltered
+// resources-library behaviour.
+export function initResourceViewer(options = {}) {
   // The grid is the item template's parent, not a fixed class — the item's
   // own inner wrapper is also named `.doc-content-wrapper`, so selecting by
   // that class would grab the wrong (nested) element.
@@ -288,11 +295,17 @@ export function initResourceViewer() {
 
     const checkbox = card.querySelector('.checkbox-item');
     if (checkbox) {
-      checkbox.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleSelection(doc.id, checkbox);
-      });
+      if (doc.modelCode) {
+        // Interactive installation videos have no downloadable file, so they
+        // can't be bulk-selected for the zip download.
+        checkbox.style.display = 'none';
+      } else {
+        checkbox.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleSelection(doc.id, checkbox);
+        });
+      }
     }
 
     card.setAttribute('data-id', doc.id);
@@ -581,7 +594,14 @@ export function initResourceViewer() {
   const wrapper = document.querySelector('.resources-wrapper');
   if (wrapper) wrapper.style.display = '';
 
-  fetch(API.url+"?limit=0&sort=resourceType", { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
+  const profileSeries = options.profileSeries || (wrapper && wrapper.getAttribute('data-profile-series')) || '';
+
+  let url = API.url + '?limit=0&sort=resourceType';
+  if (profileSeries) {
+    url += '&where[profileSeries.title][equals]=' + encodeURIComponent(profileSeries);
+  }
+
+  fetch(url, { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
     .then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
