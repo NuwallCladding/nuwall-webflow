@@ -1711,7 +1711,7 @@ margin: 0 !important;
 
 /* Product image crossfade */
 #product-preview {
-  transition: opacity 0.6s ease;
+  transition: opacity 0.3s ease;
 }
 #product-preview.is-fading {
   opacity: 0;
@@ -1739,10 +1739,6 @@ margin: 0 !important;
 
 /* Swatch thumbnail: base colour shows immediately (set inline per-item as
    background), image fades in on top once it's actually loaded. */
-.colour-item-image {
-  position: relative;
-  overflow: hidden;
-}
 .colour-item-image > img {
   opacity: 0;
   transition: opacity 0.4s ease;

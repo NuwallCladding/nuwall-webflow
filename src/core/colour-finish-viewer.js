@@ -202,7 +202,7 @@ export function initColourFinishViewer() {
           mainImageCache[src] = loader;
         }
       }
-    }, 600); // matches #product-preview's opacity transition duration in site.scss
+    }, 300); // matches #product-preview's opacity transition duration in site.scss
   }
 
   function render({ animate = false } = {}) {
@@ -241,8 +241,17 @@ export function initColourFinishViewer() {
       if (f === state.currentFinish) return;
       state.currentFinish = f;
       state.currentIndex = 0;
+
+      // Same fade/slide as switching texture — all finish groups are
+      // already in the DOM and loaded, so this is purely visual.
+      colourGrid.setAttribute('data-transitioning', 'true');
       updateVisibility();
       render({ animate: true });
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          colourGrid.setAttribute('data-transitioning', 'false');
+        })
+      );
     });
   });
 
