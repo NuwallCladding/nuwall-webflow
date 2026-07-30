@@ -1,8 +1,8 @@
 // Resource library viewer: fetches the resources API, renders one card per
 // resource, and filters by installation type / resource type / search.
-// Unlike the drawings viewer, resources are a flat list — everything is
-// visible on load and paginated with "view more". Populating either dropdown
-// filter switches into "show all matches + bulk zip" mode.
+// Unlike the drawings viewer, resources are a flat list — every match is
+// always shown, no pagination. Populating either dropdown filter switches
+// into "bulk zip" mode.
 import { withButtonSpinner } from '../utils/button-spinner.js';
 import { openWorkingSpecPreview } from './working-spec-links.js';
 import { initAccordion, ICON_PLUS } from './accordion.js';
@@ -70,8 +70,6 @@ export function initResourceViewer(options = {}) {
     filters: { installationType: '', type: '', search: '' },
     matchedIds: [],
     selectedIds: new Set(),
-    visibleCount: 30,
-    itemsPerPage: 30,
     firstRender: true,
   };
 
@@ -82,10 +80,6 @@ export function initResourceViewer(options = {}) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
-  }
-
-  function resetPage() {
-    state.visibleCount = state.itemsPerPage;
   }
 
   // Fades a card in/out instead of snapping display on/off. `display: none`
@@ -455,9 +449,6 @@ export function initResourceViewer(options = {}) {
       if (matchInstallation && matchType && matchSearch) matched.push(card);
     });
 
-    // Any of the 3 filters (installation type, type, search) active means
-    // "show all matches" instead of the normal paginated view.
-    const filterActive = !!(f.installationType || f.type || f.search);
     const dropdownFilterActive = !!(f.installationType || f.type);
 
     // Resource-type filtering or search need every category force-open so
@@ -465,10 +456,7 @@ export function initResourceViewer(options = {}) {
     // filtering leaves the accordion alone (still respects open/closed).
     grid.classList.toggle('accordion-suspended', !!(f.type || f.search));
 
-    const visible = new Set();
-    matched.forEach((card, i) => {
-      if (filterActive || i < state.visibleCount) visible.add(card);
-    });
+    const visible = new Set(matched);
     allCards.forEach((card) => setCardVisibility(card, visible.has(card), state.firstRender));
 
     // Category header rows: hidden entirely once a resourceType filter is
@@ -484,11 +472,6 @@ export function initResourceViewer(options = {}) {
     });
 
     state.firstRender = false;
-
-    const viewMoreWrapper = document.querySelector('.resource-lib-view-more');
-    if (viewMoreWrapper) {
-      viewMoreWrapper.style.display = !filterActive && matched.length > state.visibleCount ? '' : 'none';
-    }
 
     state.matchedIds = matched.map((card) => card.getAttribute('data-id'));
 
@@ -528,7 +511,6 @@ export function initResourceViewer(options = {}) {
     nav.appendChild(allLink);
     allLink.addEventListener('click', (e) => {
       e.preventDefault();
-      resetPage();
       applyValue('');
       updateDropdownLabel(allLink, 'All');
       applyFilters();
@@ -543,7 +525,6 @@ export function initResourceViewer(options = {}) {
       nav.appendChild(link);
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        resetPage();
         applyValue(opt.value);
         updateDropdownLabel(link, opt.label);
         applyFilters();
@@ -558,7 +539,6 @@ export function initResourceViewer(options = {}) {
     const q = (value || '').trim();
     // Only treat as an active search at 1+ chars; otherwise clear it.
     state.filters.search = q.length >= SEARCH_MIN_CHARS ? q : '';
-    resetPage();
     applyFilters();
   }
 
@@ -602,16 +582,6 @@ export function initResourceViewer(options = {}) {
     runSearch(term);
   }
 
-  function wireViewMore() {
-    const btn = document.querySelector('.button-view-more');
-    if (!btn) return;
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      state.visibleCount += state.itemsPerPage;
-      applyFilters();
-    });
-  }
-
   function wireZipDownload() {
     const btn = document.querySelector('.tag-file-type');
     if (!btn) return;
@@ -630,6 +600,11 @@ export function initResourceViewer(options = {}) {
   // it never flashes visible on load.
   const selectionBar = document.querySelector('.selection-bulk-download-bar');
   if (selectionBar) selectionBar.style.display = 'none';
+
+  // Pagination removed — every match always renders, so "view more" never
+  // has anything to do.
+  const viewMoreWrapper = document.querySelector('.resource-lib-view-more');
+  if (viewMoreWrapper) viewMoreWrapper.style.display = 'none';
 
   // Markup ships with this hidden (avoids a flash of empty state before JS
   // runs) — reveal it as soon as the viewer takes over, not after the fetch.
@@ -664,7 +639,6 @@ export function initResourceViewer(options = {}) {
         })
       );
       safe('search', wireSearch);
-      safe('view-more', wireViewMore);
       safe('zip-download', wireZipDownload);
       safe('selection-download', wireSelectionDownload);
       safe('preload-search', preloadSearchFromQuery);
