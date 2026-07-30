@@ -13,6 +13,9 @@ const TEXTURE_TO_FINISH_TYPE = {
   textured: 'Textured',
   'metallic-textured': 'Metallic Textured',
 };
+const FINISH_TYPE_TO_TEXTURE = Object.fromEntries(
+  Object.entries(TEXTURE_TO_FINISH_TYPE).map(([texture, finishType]) => [finishType, texture])
+);
 
 export function initColourFinishViewer() {
   const seriesRoot = document.getElementById('series-root');
@@ -46,13 +49,14 @@ export function initColourFinishViewer() {
   const state = {
     allColours: [],
     visibleItems: [],
+    itemEls: new Map(), // colour object -> its grid <div>, built once and reused across finish/texture switches
     currentIndex: 0,
     currentFinish: 'powdercoating',
     currentTexture: textureTriggers.length ? textureTriggers[0].getAttribute('data-texture') : 'smooth',
   };
 
   let pendingFade = null;
-  const preloadCache = {};
+  const mainImageCache = {};
 
   function finishKey(finishType) {
     if (POWDERCOATING.includes(finishType)) return 'powdercoating';
@@ -61,39 +65,61 @@ export function initColourFinishViewer() {
     return null;
   }
 
-  function preloadVisibleImages() {
-    state.visibleItems.forEach((c) => {
+  // Fires once per colour's main preview image, right after the fetch
+  // resolves — every colour across every finish/texture group is warmed
+  // into the browser cache up front, so switching groups or swatches later
+  // never waits on a network fetch.
+  function preloadAllMainImages() {
+    state.allColours.forEach((c) => {
       const src = c.image?.url || '';
-      if (src && !preloadCache[src]) {
+      if (src && !mainImageCache[src]) {
         const img = new Image();
         img.src = src;
-        preloadCache[src] = img;
+        mainImageCache[src] = img;
       }
     });
   }
 
-  function buildVisible() {
-    state.visibleItems = state.allColours.filter((c) => {
-      if (finishKey(c.finishType) !== state.currentFinish) return false;
-      if (state.currentFinish === 'powdercoating') {
-        return c.finishType === (TEXTURE_TO_FINISH_TYPE[state.currentTexture] || 'Smooth');
-      }
-      return true;
-    });
-    preloadVisibleImages();
+  function isVisible(c) {
+    if (finishKey(c.finishType) !== state.currentFinish) return false;
+    if (state.currentFinish === 'powdercoating') {
+      return c.finishType === (TEXTURE_TO_FINISH_TYPE[state.currentTexture] || 'Smooth');
+    }
+    return true;
+  }
+
+  // Loads a swatch thumbnail off-DOM first, so the visible <img> only ever
+  // gets a fully-decoded `src` — it fades in over the base-colour fill
+  // instead of popping in blockily mid-download.
+  function loadSwatchImage(imgEl, src) {
+    if (!src) return;
+    const loader = new Image();
+    loader.onload = () => {
+      imgEl.src = src;
+      requestAnimationFrame(() => imgEl.classList.add('is-loaded'));
+    };
+    loader.onerror = () => {
+      imgEl.src = src;
+    };
+    loader.src = src;
   }
 
   function makeItem(c) {
     const item = template.cloneNode(true);
     item.classList.remove('nw-template');
-    item.setAttribute('data-hidden', 'false');
+    item.setAttribute('data-hidden', isVisible(c) ? 'false' : 'true');
     item.setAttribute('data-finish', finishKey(c.finishType));
+    item.setAttribute('data-texture', FINISH_TYPE_TO_TEXTURE[c.finishType] || '');
     item.setAttribute('data-code', c.code);
+
+    const imageWrapper = item.querySelector('.colour-item-image');
+    if (imageWrapper) imageWrapper.style.backgroundColor = c.baseColour || '';
 
     const img = item.querySelector('.colour-item-image > img');
     if (img) {
-      img.src = c.swatchImage?.webURL || c.swatchImage?.url || '';
+      img.removeAttribute('src');
       img.alt = c.title || '';
+      loadSwatchImage(img, c.swatchImage?.webURL || c.swatchImage?.url || '');
     }
 
     const h6 = item.querySelector('.colour-name-wrapper > h6');
@@ -113,30 +139,70 @@ export function initColourFinishViewer() {
     return item;
   }
 
-  function renderGrid() {
+  // Builds every colour's grid item exactly once. Switching finish/texture
+  // afterwards only ever toggles `data-hidden` on these existing elements —
+  // it never re-fetches or re-decodes an image.
+  function buildAllItems() {
     colourGrid.querySelectorAll('.colour-item:not(.nw-template)').forEach((el) => el.remove());
-    state.visibleItems.forEach((c) => colourGrid.appendChild(makeItem(c)));
+    state.itemEls.clear();
+    state.allColours.forEach((c) => {
+      const item = makeItem(c);
+      state.itemEls.set(c, item);
+      colourGrid.appendChild(item);
+    });
   }
 
+  function updateVisibility() {
+    state.visibleItems = state.allColours.filter(isVisible);
+    state.allColours.forEach((c) => {
+      const el = state.itemEls.get(c);
+      if (el) el.setAttribute('data-hidden', isVisible(c) ? 'false' : 'true');
+    });
+  }
+
+  // Crossfades #product-preview to `src`: fades the current image out, and
+  // only swaps `src` (and starts the fade back in) once the new image has
+  // actually finished loading — swapping on a timer alone let the fade-in
+  // start over blank/undecoded pixels, which read as the old image
+  // "flashing" back before snapping to the new one.
   function swapImage(src, animate) {
     if (!src) return;
 
     if (pendingFade) {
       clearTimeout(pendingFade);
       pendingFade = null;
-      productImg.classList.remove('is-fading');
     }
 
-    if (animate) {
-      productImg.classList.add('is-fading');
-      pendingFade = setTimeout(() => {
-        productImg.src = src;
-        productImg.classList.remove('is-fading');
-        pendingFade = null;
-      }, 600);
-    } else {
+    if (!animate) {
+      productImg.classList.remove('is-fading');
       productImg.src = src;
+      return;
     }
+
+    productImg.classList.add('is-fading');
+
+    pendingFade = setTimeout(() => {
+      pendingFade = null;
+
+      const reveal = () => {
+        productImg.src = src;
+        requestAnimationFrame(() => {
+          productImg.classList.remove('is-fading');
+        });
+      };
+
+      const cached = mainImageCache[src];
+      if (cached && cached.complete) {
+        reveal();
+      } else {
+        const loader = cached || new Image();
+        loader.onload = reveal;
+        if (!cached) {
+          loader.src = src;
+          mainImageCache[src] = loader;
+        }
+      }
+    }, 600); // matches #product-preview's opacity transition duration in site.scss
   }
 
   function render({ animate = false } = {}) {
@@ -151,8 +217,9 @@ export function initColourFinishViewer() {
     const nameOuter = document.querySelector('.colour-name-outer');
     if (nameOuter) nameOuter.textContent = active.title || '';
 
-    colourGrid.querySelectorAll('.colour-item:not(.nw-template)').forEach((el, i) => {
-      el.classList.toggle('is-active', i === state.currentIndex);
+    state.allColours.forEach((c) => {
+      const el = state.itemEls.get(c);
+      if (el) el.classList.toggle('is-active', c === active);
     });
 
     finishTriggers.forEach((el) => {
@@ -174,8 +241,7 @@ export function initColourFinishViewer() {
       if (f === state.currentFinish) return;
       state.currentFinish = f;
       state.currentIndex = 0;
-      buildVisible();
-      renderGrid();
+      updateVisibility();
       render({ animate: true });
     });
   });
@@ -187,17 +253,17 @@ export function initColourFinishViewer() {
       state.currentTexture = t;
       state.currentIndex = 0;
 
+      // All swatches for every texture are already in the DOM and loaded —
+      // this is purely the visual fade/slide between groups, not a wait for
+      // content to become ready.
       colourGrid.setAttribute('data-transitioning', 'true');
-      setTimeout(() => {
-        buildVisible();
-        renderGrid();
-        render({ animate: false });
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => {
-            colourGrid.setAttribute('data-transitioning', 'false');
-          })
-        );
-      }, 250);
+      updateVisibility();
+      render({ animate: false });
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          colourGrid.setAttribute('data-transitioning', 'false');
+        })
+      );
     });
   });
 
@@ -228,8 +294,9 @@ export function initColourFinishViewer() {
     })
     .then((colours) => {
       state.allColours = Array.isArray(colours) ? colours : colours.docs || [];
-      buildVisible();
-      renderGrid();
+      preloadAllMainImages();
+      buildAllItems();
+      updateVisibility();
       render({ animate: false });
     })
     .catch((err) => console.error('[colours] fetch failed:', err));

@@ -1737,6 +1737,20 @@ margin: 0 !important;
   transform: translateY(0);
 }
 
+/* Swatch thumbnail: base colour shows immediately (set inline per-item as
+   background), image fades in on top once it's actually loaded. */
+.colour-item-image {
+  position: relative;
+  overflow: hidden;
+}
+.colour-item-image > img {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.colour-item-image > img.is-loaded {
+  opacity: 1;
+}
+
 .colour-item .colour-item-content .colour-name-wrapper h6 {
   overflow-wrap: break-word !important;
   white-space: normal !important;
