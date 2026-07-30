@@ -17,6 +17,74 @@ const FINISH_TYPE_TO_TEXTURE = Object.fromEntries(
   Object.entries(TEXTURE_TO_FINISH_TYPE).map(([texture, finishType]) => [finishType, texture])
 );
 
+// A colour page can easily have 60-100+ swatch + main-preview images to
+// warm on load. Firing them all at once regularly 429s the CMS, so every
+// image load goes through this small queue instead: capped concurrency,
+// plus a minimum gap between request starts, plus a couple of backed-off
+// retries for any request the CMS still rate-limits.
+const MAX_CONCURRENT_IMAGE_LOADS = 4;
+const MIN_LOAD_START_GAP_MS = 90;
+const LOAD_RETRY_BACKOFF_MS = 800;
+const LOAD_MAX_RETRIES = 2;
+
+let activeImageLoads = 0;
+let lastLoadStartAt = 0;
+let queueTimer = null;
+const imageLoadQueue = [];
+
+function pumpImageQueue() {
+  if (queueTimer) return;
+
+  while (activeImageLoads < MAX_CONCURRENT_IMAGE_LOADS && imageLoadQueue.length) {
+    const wait = MIN_LOAD_START_GAP_MS - (Date.now() - lastLoadStartAt);
+    if (wait > 0) {
+      queueTimer = setTimeout(() => {
+        queueTimer = null;
+        pumpImageQueue();
+      }, wait);
+      return;
+    }
+
+    const task = imageLoadQueue.shift();
+    activeImageLoads++;
+    lastLoadStartAt = Date.now();
+    task();
+  }
+}
+
+// Queues `src` to load through a shared `<img>` (created immediately and
+// returned so callers can cache/inspect it before it's actually started),
+// with capped concurrency and retry-with-backoff on failure (e.g. a 429).
+function queueImageLoad(src, { onload, onerror } = {}) {
+  const img = new Image();
+  if (!src) return img;
+
+  function attempt(retriesLeft) {
+    img.onload = () => {
+      activeImageLoads--;
+      onload?.(img);
+      pumpImageQueue();
+    };
+    img.onerror = () => {
+      activeImageLoads--;
+      if (retriesLeft > 0) {
+        setTimeout(() => {
+          imageLoadQueue.push(() => attempt(retriesLeft - 1));
+          pumpImageQueue();
+        }, LOAD_RETRY_BACKOFF_MS);
+      } else {
+        onerror?.(img);
+      }
+      pumpImageQueue();
+    };
+    img.src = src;
+  }
+
+  imageLoadQueue.push(() => attempt(LOAD_MAX_RETRIES));
+  pumpImageQueue();
+  return img;
+}
+
 export function initColourFinishViewer() {
   const seriesRoot = document.getElementById('series-root');
   const SERIES_ID = seriesRoot ? parseInt(seriesRoot.dataset.seriesId, 10) : null;
@@ -68,14 +136,13 @@ export function initColourFinishViewer() {
   // Fires once per colour's main preview image, right after the fetch
   // resolves — every colour across every finish/texture group is warmed
   // into the browser cache up front, so switching groups or swatches later
-  // never waits on a network fetch.
+  // never waits on a network fetch. Goes through the shared queue so 60+
+  // colours don't all hit the CMS at once.
   function preloadAllMainImages() {
     state.allColours.forEach((c) => {
       const src = c.image?.url || '';
       if (src && !mainImageCache[src]) {
-        const img = new Image();
-        img.src = src;
-        mainImageCache[src] = img;
+        mainImageCache[src] = queueImageLoad(src);
       }
     });
   }
@@ -90,18 +157,19 @@ export function initColourFinishViewer() {
 
   // Loads a swatch thumbnail off-DOM first, so the visible <img> only ever
   // gets a fully-decoded `src` — it fades in over the base-colour fill
-  // instead of popping in blockily mid-download.
+  // instead of popping in blockily mid-download. Queued (not fired
+  // directly) so every colour's swatch doesn't hit the CMS at once.
   function loadSwatchImage(imgEl, src) {
     if (!src) return;
-    const loader = new Image();
-    loader.onload = () => {
-      imgEl.src = src;
-      requestAnimationFrame(() => imgEl.classList.add('is-loaded'));
-    };
-    loader.onerror = () => {
-      imgEl.src = src;
-    };
-    loader.src = src;
+    queueImageLoad(src, {
+      onload: () => {
+        imgEl.src = src;
+        requestAnimationFrame(() => imgEl.classList.add('is-loaded'));
+      },
+      onerror: () => {
+        imgEl.src = src;
+      },
+    });
   }
 
   function makeItem(c) {
@@ -191,16 +259,19 @@ export function initColourFinishViewer() {
         });
       };
 
-      const cached = mainImageCache[src];
-      if (cached && cached.complete) {
+      // `cached` may already be mid-load (or mid-retry) via the shared
+      // queue — listen instead of overwriting its `onload`, which the
+      // queue relies on for its own concurrency bookkeeping.
+      let cached = mainImageCache[src];
+      if (!cached) {
+        cached = queueImageLoad(src);
+        mainImageCache[src] = cached;
+      }
+
+      if (cached.complete) {
         reveal();
       } else {
-        const loader = cached || new Image();
-        loader.onload = reveal;
-        if (!cached) {
-          loader.src = src;
-          mainImageCache[src] = loader;
-        }
+        cached.addEventListener('load', reveal, { once: true });
       }
     }, 300); // matches #product-preview's opacity transition duration in site.scss
   }
