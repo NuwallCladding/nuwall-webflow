@@ -17,6 +17,22 @@ const FINISH_TYPE_TO_TEXTURE = Object.fromEntries(
   Object.entries(TEXTURE_TO_FINISH_TYPE).map(([texture, finishType]) => [finishType, texture])
 );
 
+// Determines the order colours are built/queued in — not just their visual
+// grid position (each finish/texture group is still internally sorted by
+// the CMS's own "order" field, since this sort is stable). Textured loads
+// first, then Smooth, etc., so one whole group's swatches finish loading
+// before the next group even starts, instead of every group's images
+// racing each other through the shared queue at once.
+const FINISH_LOAD_PRIORITY = ['Textured', 'Smooth', 'Metallic Textured', 'Anodised', 'Sublimation'];
+
+function byLoadPriority(colours) {
+  return colours.slice().sort((a, b) => {
+    const ai = FINISH_LOAD_PRIORITY.indexOf(a.finishType);
+    const bi = FINISH_LOAD_PRIORITY.indexOf(b.finishType);
+    return (ai === -1 ? FINISH_LOAD_PRIORITY.length : ai) - (bi === -1 ? FINISH_LOAD_PRIORITY.length : bi);
+  });
+}
+
 // A colour page can easily have 60-100+ swatch + main-preview images to
 // warm on load. Firing them all at once regularly 429s the CMS, so every
 // image load goes through this small queue instead: capped concurrency,
@@ -373,9 +389,12 @@ export function initColourFinishViewer() {
       return res.json();
     })
     .then((colours) => {
-      state.allColours = Array.isArray(colours) ? colours : colours.docs || [];
-      preloadAllMainImages();
+      state.allColours = byLoadPriority(Array.isArray(colours) ? colours : colours.docs || []);
+      // Swatches queue first (in load-priority order) so they don't wait
+      // behind every colour's larger main-preview image; those are queued
+      // second, in the same priority order.
       buildAllItems();
+      preloadAllMainImages();
       updateVisibility();
       render({ animate: false });
     })
