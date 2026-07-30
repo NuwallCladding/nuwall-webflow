@@ -4,13 +4,15 @@ name: build
 # are always CI-built (not whatever was on someone's laptop).
 #
 # Two modes:
-#   - Push to main: rebuild and commit dist/ if it changed.
-#   - Push a tag (v*): rebuild, commit, and the tag now points at fresh dist/.
+#   - Push to main: rebuild; if dist/ changed, auto patch-bump
+#     package.json, commit both, and tag+push the new version — fully
+#     hands-off, no manual version/tag step.
+#   - Push a tag (v*) directly (e.g. to re-cut an old commit): rebuild and
+#     commit dist/ if it changed, no version bump (the tag already names
+#     the version).
 #
-# Workflow to cut a release:
-#   1. bump "version" in package.json, commit, push to main
-#   2. git tag v1.2.3 && git push --tags
-#   3. jsDelivr serves .../gh/user/repo@v1.2.3/dist/*.min.js
+# jsDelivr then serves .../gh/user/repo@v1.2.3/dist/*.min.js for whatever
+# tag was just pushed.
 
 on:
   push:
@@ -19,6 +21,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -35,13 +41,25 @@ jobs:
 
       - run: npm run build
 
-      - name: Commit dist if changed
+      - name: Commit dist (and auto-tag a new version on main)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dist -f
+
           if git diff --staged --quiet; then
             echo "No dist changes."
+            exit 0
+          fi
+
+          if [ "${{ github.ref_type }}" = "branch" ]; then
+            npm version patch --no-git-tag-version
+            VERSION=$(node -p "require('./package.json').version")
+            git add package.json package-lock.json
+            git commit -m "ci: build dist v${VERSION} [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+            git tag "v${VERSION}"
+            git push origin "v${VERSION}"
           else
             git commit -m "ci: build dist [skip ci]"
             git push origin HEAD:${GITHUB_REF_NAME}
