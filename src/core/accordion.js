@@ -100,12 +100,18 @@ function toggle(item) {
 }
 
 export function initAccordion() {
+  // Safe to call more than once (e.g. once on page load, then again after
+  // an async render adds new `.accordion-item`s) — already-wired triggers
+  // are skipped instead of picking up a second click listener, which would
+  // double-fire toggle() and make an item open then immediately re-close.
   document.querySelectorAll('.accordion-item').forEach((item) => {
     const trigger = item.querySelector('.accordion-trigger');
     if (!trigger) {
       console.warn('[accordion] .accordion-trigger not found in:', item);
       return;
     }
+    if (trigger.dataset.accordionBound === 'true') return;
+    trigger.dataset.accordionBound = 'true';
     trigger.addEventListener('click', () => toggle(item));
   });
 
