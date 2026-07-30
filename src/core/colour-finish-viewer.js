@@ -354,7 +354,7 @@ export function initColourFinishViewer() {
       // content to become ready.
       colourGrid.setAttribute('data-transitioning', 'true');
       updateVisibility();
-      render({ animate: false });
+      render({ animate: true });
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
           colourGrid.setAttribute('data-transitioning', 'false');

@@ -5,6 +5,7 @@
 // filter switches into "show all matches + bulk zip" mode.
 import { withButtonSpinner } from '../utils/button-spinner.js';
 import { openWorkingSpecPreview } from './working-spec-links.js';
+import { initAccordion, ICON_PLUS } from './accordion.js';
 
 const API = {
   url: 'https://cms.nuwall.co.nz/api/resources',
@@ -338,9 +339,17 @@ export function initResourceViewer(options = {}) {
     header.removeAttribute('data-nw-template');
     header.style.display = '';
     header.setAttribute('data-category', category);
+    header.classList.add('accordion-trigger');
 
     const labelEl = header.querySelector('.category-header');
     if (labelEl) labelEl.textContent = labelFor(RESOURCE_TYPE_OPTIONS, category) || category;
+
+    if (!header.querySelector('.accordion-icon')) {
+      const icon = document.createElement('div');
+      icon.className = 'accordion-icon';
+      icon.innerHTML = ICON_PLUS;
+      header.appendChild(icon);
+    }
 
     return header;
   }
@@ -380,26 +389,54 @@ export function initResourceViewer(options = {}) {
     });
   }
 
+  // Each category becomes one `.accordion-item` (header as `.accordion-trigger`,
+  // its cards wrapped in `.accordion-content`) so accordion.js's generic
+  // open/close wiring works on it unmodified. Collapsed by default via the
+  // shared `.accordion-content` CSS — nothing here needs to force that.
   function renderCards() {
-    grid.querySelectorAll('.doc-content-item:not([data-nw-template])').forEach((el) => el.remove());
-    grid.querySelectorAll('.doc-content-header:not([data-nw-template])').forEach((el) => el.remove());
+    grid.querySelectorAll('.accordion-item').forEach((el) => el.remove());
+    if (!headerTemplate) {
+      grid.querySelectorAll('.doc-content-item:not([data-nw-template])').forEach((el) => el.remove());
+    }
 
     let lastCategory = null;
+    let currentContent = null;
+
     sortByResourceType(state.allResources).forEach((doc) => {
       try {
         const category = primaryCategory(doc);
-        if (headerTemplate && category !== lastCategory) {
-          grid.appendChild(makeHeader(category));
-          lastCategory = category;
+
+        if (headerTemplate) {
+          if (category !== lastCategory) {
+            const group = document.createElement('div');
+            group.className = 'accordion-item';
+            group.setAttribute('data-category', category);
+            group.appendChild(makeHeader(category));
+
+            currentContent = document.createElement('div');
+            currentContent.className = 'accordion-content';
+            group.appendChild(currentContent);
+
+            grid.appendChild(group);
+            lastCategory = category;
+          }
+
+          const card = makeCard(doc);
+          if (card) currentContent.appendChild(card);
+        } else {
+          const card = makeCard(doc);
+          if (card) grid.appendChild(card);
         }
-        const card = makeCard(doc);
-        if (card) grid.appendChild(card);
       } catch (e) {
         console.error('[resources] makeCard failed:', doc.title, e.message);
       }
     });
 
     applyFilters();
+    // Newly-built triggers didn't exist when the global initAccordion() ran
+    // on page load — wire them now. renderCards() only runs once per page
+    // load, so this can't double-bind listeners on the same elements.
+    initAccordion();
   }
 
   // ---- filtering ---------------------------------------------------------
@@ -422,6 +459,11 @@ export function initResourceViewer(options = {}) {
     // "show all matches" instead of the normal paginated view.
     const filterActive = !!(f.installationType || f.type || f.search);
     const dropdownFilterActive = !!(f.installationType || f.type);
+
+    // Resource-type filtering or search need every category force-open so
+    // matches aren't hidden inside a collapsed group — installation-type
+    // filtering leaves the accordion alone (still respects open/closed).
+    grid.classList.toggle('accordion-suspended', !!(f.type || f.search));
 
     const visible = new Set();
     matched.forEach((card, i) => {

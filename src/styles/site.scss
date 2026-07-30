@@ -1997,3 +1997,18 @@ margin: 0 !important;
 .accordion-trigger {
   cursor: pointer;
 }
+
+/* Resource library: resource-type filtering or search force every category
+   open (matches shouldn't hide inside a collapsed group) and disable the
+   trigger — installation-type filtering leaves this alone, via
+   src/core/resource-viewer.js. */
+.accordion-suspended .accordion-content {
+  height: auto !important;
+  opacity: 1 !important;
+}
+.accordion-suspended .accordion-trigger {
+  pointer-events: none;
+}
+.accordion-suspended .accordion-icon {
+  display: none;
+}

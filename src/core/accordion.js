@@ -16,7 +16,10 @@
 
 const TRANSITION = 'height 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 800ms ease';
 
-const ICON_PLUS =
+// Exported so callers that build `.accordion-trigger` markup dynamically
+// (e.g. resource-viewer.js) can seed the same collapsed-state icon instead
+// of duplicating the SVG.
+export const ICON_PLUS =
   '<svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">' +
   '<path d="M22.5 11.25L22.5 33.75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
   '<path d="M33.75 22.5L11.25 22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
