@@ -1894,17 +1894,11 @@ margin: 0 !important;
   border-bottom: 1px solid var(--_brand-colors---brand-black);
 }
 
-/* ── Tab details panel (slide down on open, via series-profile-slider.js) ── */
+/* ── Tab details panel (shown/hidden via series-profile-slider.js) ── */
 .series-tab-details {
-  display: block;
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.5s cubic-bezier(0.61, 1, 0.88, 1);
+  display: none;
 }
 
-.series-tab-container {
-  border-bottom: 0.5px solid var(--_brand-colors---brand-black);
-}
 .series-list:last-child {
   border-bottom: none;
 }

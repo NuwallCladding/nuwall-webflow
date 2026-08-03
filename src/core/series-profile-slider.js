@@ -164,7 +164,7 @@ export function initSeriesProfileSlider() {
     tabDetails.forEach((el) => {
       const isActive = el.getAttribute('data-tab-details') === tabId;
       el.classList.toggle('is-active', isActive);
-      el.style.maxHeight = isActive ? el.scrollHeight + 'px' : '0px';
+      el.style.display = isActive ? '' : 'none';
     });
   }
 
