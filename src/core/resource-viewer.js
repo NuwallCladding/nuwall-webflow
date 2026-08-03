@@ -454,10 +454,27 @@ export function initResourceViewer(options = {}) {
     // Resource-type filtering or search need every category force-open so
     // matches aren't hidden inside a collapsed group — installation-type
     // filtering leaves the accordion alone (still respects open/closed).
-    grid.classList.toggle('accordion-suspended', !!(f.type || f.search));
+    const suspend = !!(f.type || f.search);
+    const wasSuspended = grid.classList.contains('accordion-suspended');
+
+    // A category that's about to spring open (closed → force-opened by
+    // suspension) reveals cards that were never actually shown, but still
+    // carry opacity:1 from the very first (unfiltered) render — clipped
+    // invisible by the collapsed height, not actually hidden. Fading those
+    // cards now would visibly flash that stale, unfiltered state before the
+    // fade catches up, so cards in a newly-revealed category snap to their
+    // correct visibility instantly instead of transitioning.
+    const revealingItems = new Set();
+    if (suspend && !wasSuspended) {
+      grid.querySelectorAll('.accordion-item:not(.is-open)').forEach((item) => revealingItems.add(item));
+    }
+    grid.classList.toggle('accordion-suspended', suspend);
 
     const visible = new Set(matched);
-    allCards.forEach((card) => setCardVisibility(card, visible.has(card), state.firstRender));
+    allCards.forEach((card) => {
+      const instant = state.firstRender || revealingItems.has(card.closest('.accordion-item'));
+      setCardVisibility(card, visible.has(card), instant);
+    });
 
     // Category header rows: hidden entirely once a resourceType filter is
     // picked; otherwise a header shows only if its group has a visible card.

@@ -1897,10 +1897,12 @@ margin: 0 !important;
 /* ── Tab details panel (shown/hidden via series-profile-slider.js) ── */
 .series-tab-details {
   display: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
 }
 .series-tab-details.is-active {
   display: block;
-} 
+}
 
 .series-list:last-child {
   border-bottom: none;
