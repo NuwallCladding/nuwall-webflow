@@ -1898,6 +1898,9 @@ margin: 0 !important;
 .series-tab-details {
   display: none;
 }
+.series-tab-details.is-active {
+  display: block;
+} 
 
 .series-list:last-child {
   border-bottom: none;
