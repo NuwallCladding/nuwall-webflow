@@ -1809,6 +1809,47 @@ margin: 0 !important;
   transition: opacity 700ms ease;
 }
 
+/* ── Series tab .is-active styling ── */
+.series-tab-item .underline {
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+  transition:
+    transform 600ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 600ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+.series-tab-item h4 {
+  opacity: 0.3;
+  transition: opacity 600ms ease;
+}
+
+.series-tab-item:hover .underline {
+  transform: scaleX(1);
+  opacity: 1;
+  transition:
+    transform 700ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 700ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+.series-tab-item:hover h4 {
+  opacity: 1;
+  transition: opacity 700ms ease;
+}
+
+.series-tab-item.is-active .underline {
+  transform: scaleX(1);
+  opacity: 1;
+  transition:
+    transform 700ms cubic-bezier(0.39, 0.575, 0.565, 1),
+    opacity 700ms cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+.series-tab-item.is-active h4 {
+  opacity: 1;
+  transition: opacity 700ms ease;
+}
+
 /* ── Profile slider ── */
 .series-slider-item .swiper.cs-swiper {
   max-height: 70vh;
