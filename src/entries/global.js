@@ -31,4 +31,14 @@ onReady(() => {
   initSampleRequest();
   initSiteForms();
   initWorkingSpecLinks();
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('back-to-top');
+    window.addEventListener('scroll', function () {
+      btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+    });
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
 });
