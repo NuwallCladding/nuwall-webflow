@@ -288,17 +288,18 @@ export function initResourceViewer(options = {}) {
       }
     }
 
-    const checkbox = card.querySelector('.checkbox-field');
-    if (checkbox) {
+    const checkboxField = card.querySelector('.checkbox-field');
+    if (checkboxField) {
       if (doc.modelCode) {
         // Interactive installation videos have no downloadable file, so they
         // can't be bulk-selected for the zip download.
-        checkbox.style.display = 'none';
+        checkboxField.style.display = 'none';
       } else {
-        checkbox.addEventListener('click', (e) => {
+        const checkboxItem = checkboxField.querySelector('.checkbox-item') || checkboxField;
+        checkboxField.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          toggleSelection(doc.id, checkbox);
+          toggleSelection(doc.id, checkboxItem);
         });
       }
     }
@@ -385,7 +386,7 @@ export function initResourceViewer(options = {}) {
 
   function clearSelection() {
     state.selectedIds.clear();
-    grid.querySelectorAll('.checkbox-field.w--redirected-checked').forEach((checkbox) => {
+    grid.querySelectorAll('.checkbox-item.w--redirected-checked').forEach((checkbox) => {
       checkbox.classList.remove('w--redirected-checked');
     });
     updateSelectionBar();

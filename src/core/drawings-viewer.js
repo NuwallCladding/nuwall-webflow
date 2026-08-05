@@ -253,12 +253,13 @@ export function initDrawingsViewer() {
 
     if (!hasPdf && !hasDwg) return null;
 
-    const checkbox = card.querySelector('.checkbox-field');
-    if (checkbox) {
-      checkbox.addEventListener('click', (e) => {
+    const checkboxField = card.querySelector('.checkbox-field');
+    if (checkboxField) {
+      const checkboxItem = checkboxField.querySelector('.checkbox-item') || checkboxField;
+      checkboxField.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        toggleSelection(doc.id, checkbox);
+        toggleSelection(doc.id, checkboxItem);
       });
     }
 
@@ -333,7 +334,7 @@ export function initDrawingsViewer() {
 
   function clearSelection() {
     state.selectedIds.clear();
-    grid.querySelectorAll('.checkbox-field.w--redirected-checked').forEach((checkbox) => {
+    grid.querySelectorAll('.checkbox-item.w--redirected-checked').forEach((checkbox) => {
       checkbox.classList.remove('w--redirected-checked');
     });
     updateSelectionBar();
