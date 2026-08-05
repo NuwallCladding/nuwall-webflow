@@ -331,6 +331,23 @@ export function initDrawingsViewer() {
     });
   }
 
+  function clearSelection() {
+    state.selectedIds.clear();
+    grid.querySelectorAll('.checkbox-item.w--redirected-checked').forEach((checkbox) => {
+      checkbox.classList.remove('w--redirected-checked');
+    });
+    updateSelectionBar();
+  }
+
+  function wireClearSelection() {
+    const btn = document.querySelector('.clear-selected-wrapper');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearSelection();
+    });
+  }
+
   // ---- filtering ---------------------------------------------------------
 
   function applyFilters() {
@@ -602,6 +619,7 @@ export function initDrawingsViewer() {
       safe('search', wireSearch);
       safe('view-more', wireViewMore);
       safe('selection-download', wireSelectionDownload);
+      safe('clear-selection', wireClearSelection);
       safe('preload-search', preloadSearchFromQuery);
 
       console.log('[cad] loaded ' + state.allLibraries.length + ' libraries');

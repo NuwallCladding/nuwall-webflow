@@ -383,6 +383,23 @@ export function initResourceViewer(options = {}) {
     });
   }
 
+  function clearSelection() {
+    state.selectedIds.clear();
+    grid.querySelectorAll('.checkbox-item.w--redirected-checked').forEach((checkbox) => {
+      checkbox.classList.remove('w--redirected-checked');
+    });
+    updateSelectionBar();
+  }
+
+  function wireClearSelection() {
+    const btn = document.querySelector('.clear-selected-wrapper');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearSelection();
+    });
+  }
+
   // Each category becomes one `.accordion-item` (header as `.accordion-trigger`,
   // its cards wrapped in `.accordion-content`) so accordion.js's generic
   // open/close wiring works on it unmodified. Collapsed by default via the
@@ -658,6 +675,7 @@ export function initResourceViewer(options = {}) {
       safe('search', wireSearch);
       safe('zip-download', wireZipDownload);
       safe('selection-download', wireSelectionDownload);
+      safe('clear-selection', wireClearSelection);
       safe('preload-search', preloadSearchFromQuery);
     })
     .catch((err) => {
