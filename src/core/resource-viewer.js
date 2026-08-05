@@ -288,7 +288,7 @@ export function initResourceViewer(options = {}) {
       }
     }
 
-    const checkbox = card.querySelector('.checkbox-item');
+    const checkbox = card.querySelector('.checkbox-field');
     if (checkbox) {
       if (doc.modelCode) {
         // Interactive installation videos have no downloadable file, so they
@@ -385,7 +385,7 @@ export function initResourceViewer(options = {}) {
 
   function clearSelection() {
     state.selectedIds.clear();
-    grid.querySelectorAll('.checkbox-item.w--redirected-checked').forEach((checkbox) => {
+    grid.querySelectorAll('.checkbox-field.w--redirected-checked').forEach((checkbox) => {
       checkbox.classList.remove('w--redirected-checked');
     });
     updateSelectionBar();
