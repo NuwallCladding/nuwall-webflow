@@ -2065,7 +2065,7 @@ margin: 0 !important;
   color: var(--_brand-colors---brand-off-white);
 }
 
-  .image--cover {
+.image--cover {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
@@ -2100,3 +2100,33 @@ margin: 0 !important;
 .features-usp_list > .grid-col-6:last-child{
   border-bottom: 0.5px solid var(--_brand-colors---brand-black);
 }
+
+/* ============================================================
+   Inspiration page - Individual project page
+   ============================================================ */
+
+.spec-detail .body-small:last-child{
+  padding: 0;
+  margin: 0;
+}
+
+.section-inspiration-testimonial h2{
+  hanging-punctuation: first last;
+}
+
+
+.section-inspiration-testimonial h2::before{
+  content: '"';
+}
+.section-inspiration-testimonial h2::after{
+  content: '"';
+}
+
+.section-inspiration-testimonial h6::before{
+  content: '— ';
+}
+
+.spec-detail:has(p, .w-richtext) {
+  margin-top: -5px;
+}
+  

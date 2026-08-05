@@ -6,8 +6,10 @@
 import { onReady } from '../utils/ready.js';
 import { initCsSwipers } from '../core/cs-swiper.js';
 import { initInspirationFilters } from '../core/inspiration-filters.js';
+import { initCursorFollow } from '../core/cursor-follow.js';
 
 onReady(() => {
   initCsSwipers();
   initInspirationFilters();
+  initCursorFollow();
 });
