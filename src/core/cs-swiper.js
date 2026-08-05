@@ -234,8 +234,8 @@ export function initCsSwipers() {
       centeredSlides: centered,
       observer: true,
       threshold: 10,
-      preventClicks: false,
-      preventClicksPropagation: false,
+      preventClicks: true,
+      preventClicksPropagation: true,
       observeParents: true,
     };
     if (wantsLoop) {
