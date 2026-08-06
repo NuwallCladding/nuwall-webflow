@@ -529,6 +529,16 @@ export function initResourceViewer(options = {}) {
     }
 
     updateFilterHeader();
+    updateClearFilterBtn();
+  }
+
+  // Any of the three filters counts here, matching what clear-filter resets.
+  function updateClearFilterBtn() {
+    const btn = document.querySelector('.clear-filter-btn');
+    if (!btn) return;
+    const f = state.filters;
+    const filtersActive = !!(f.installationType || f.type || f.search);
+    btn.style.display = filtersActive ? '' : 'none';
   }
 
   // ---- filter wiring -------------------------------------------------
@@ -685,6 +695,11 @@ export function initResourceViewer(options = {}) {
   // it never flashes visible on load.
   const selectionBar = document.querySelector('.selection-bulk-download-bar');
   if (selectionBar) selectionBar.style.display = 'none';
+
+  // Hidden until a filter is applied, before the fetch even resolves, so it
+  // never flashes visible on load.
+  const clearFilterBtn = document.querySelector('.clear-filter-btn');
+  if (clearFilterBtn) clearFilterBtn.style.display = 'none';
 
   // Pagination removed — every match always renders, so "view more" never
   // has anything to do.

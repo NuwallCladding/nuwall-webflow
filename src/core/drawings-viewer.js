@@ -391,6 +391,16 @@ export function initDrawingsViewer() {
     }
 
     updateLibraryHeader();
+    updateClearFilterBtn();
+  }
+
+  // Only category/search count as "refining" filters here — the library
+  // filter is the base selection, not something clear-filter should touch.
+  function updateClearFilterBtn() {
+    const btn = document.querySelector('.clear-filter-btn');
+    if (!btn) return;
+    const filtersActive = !!(state.filters.category || state.filters.search);
+    btn.style.display = filtersActive ? '' : 'none';
   }
 
   // Appends "Category - Search "term"" onto the base library name whenever
@@ -657,6 +667,11 @@ export function initDrawingsViewer() {
   // it never flashes visible on load.
   const selectionBar = document.querySelector('.selection-bulk-download-bar');
   if (selectionBar) selectionBar.style.display = 'none';
+
+  // Hidden until a category/search filter is applied, before the fetch even
+  // resolves, so it never flashes visible on load.
+  const clearFilterBtn = document.querySelector('.clear-filter-btn');
+  if (clearFilterBtn) clearFilterBtn.style.display = 'none';
 
   fetch(API.url, { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
     .then((res) => {
