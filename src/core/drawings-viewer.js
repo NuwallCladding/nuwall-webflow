@@ -31,9 +31,16 @@ export function initDrawingsViewer() {
   const categoryDdWrapper = document.querySelector('.cad-categories-dd');
   const searchWrapper = document.querySelector('.cad-lib-search-wrapper');
 
+  // Captured before any filter interaction so the clear-filter button can
+  // restore the category dropdown's exact pre-selection label/state.
+  const categoryPlaceholder = categoryDropdown ? categoryDropdown.querySelector('.filter-placeholder') : null;
+  const categoryPlaceholderDefaultText = categoryPlaceholder ? categoryPlaceholder.textContent : '';
+
   const state = {
     allLibraries: [],
+    currentLibrary: null,
     filters: { library: '', category: '', search: '' },
+    matchedIds: [],
     selectedIds: new Set(),
     visibleCount: 20,
     itemsPerPage: 20,
@@ -316,8 +323,8 @@ export function initDrawingsViewer() {
 
   function wireSelectionDownload() {
     const buttons = [
-      { el: document.querySelector('.selection-bulk-download-btn-pdf'), format: 'pdf' },
-      { el: document.querySelector('.selection-bulk-download-btn-dwg'), format: 'dwg' },
+      { el: document.querySelector('.bulk-download-btn-pdf'), format: 'pdf' },
+      { el: document.querySelector('.bulk-download-btn-dwg'), format: 'dwg' },
     ];
 
     buttons.forEach(({ el: btn, format }) => {
@@ -375,13 +382,49 @@ export function initDrawingsViewer() {
     if (viewMoreWrapper) {
       viewMoreWrapper.style.display = matched.length > state.visibleCount ? '' : 'none';
     }
+
+    state.matchedIds = matched.map((card) => card.getAttribute('data-id'));
+
+    if (state.currentLibrary) {
+      const counterEl = document.querySelector('.library-drawing-counter');
+      if (counterEl) counterEl.textContent = matched.length + ' Drawings';
+    }
+
+    updateLibraryHeader();
+  }
+
+  // Appends "Category - Search "term"" onto the base library name whenever
+  // a category or search filter is active, so the header itself signals a
+  // refined (not full-library) view.
+  function updateLibraryHeader() {
+    const headerEl = document.querySelector('.library-header');
+    if (!headerEl || !state.currentLibrary) return;
+
+    const parts = [state.currentLibrary.name || ''];
+    if (state.filters.category) parts.push(state.filters.category);
+    if (state.filters.search) parts.push('Search "' + state.filters.search + '"');
+
+    headerEl.textContent = parts.join(' - ');
   }
 
   // ---- selected-library detail panel --------------------------------------
 
+  // Bulk "download all" buttons ship pointed at the library's full-set zip
+  // (downloadPdfUrl/downloadDwgUrl), but once a category or search filter is
+  // active they should only hand back the refined set — same zip-by-ids
+  // endpoint the checkbox-selection download already uses.
+  function bulkDownload(format, library) {
+    const filtersActive = !!(state.filters.category || state.filters.search);
+    if (filtersActive) {
+      if (!state.matchedIds.length) return Promise.resolve();
+      return downloadZipWithApiKey(state.matchedIds, format);
+    }
+    const url = format === 'pdf' ? library.downloadPdfUrl : library.downloadDwgUrl;
+    return downloadWithApiKey(url, toKebab(library.name || 'drawings') + '-' + format);
+  }
+
   function updateLibraryDetails(library) {
-    const headerEl = document.querySelector('.library-header');
-    if (headerEl) headerEl.textContent = library.name || '';
+    state.currentLibrary = library;
 
     const branzEl = document.querySelector('.library-branz-number');
     if (branzEl) {
@@ -393,11 +436,6 @@ export function initDrawingsViewer() {
       }
     }
 
-    const counterEl = document.querySelector('.library-drawing-counter');
-    if (counterEl) {
-      counterEl.textContent = (library.content || []).length + ' Drawings';
-    }
-
     const bulkPdf = document.querySelector('[data-role="bulk-pdf"]');
     if (bulkPdf) {
       if (library.downloadPdfUrl) {
@@ -406,9 +444,7 @@ export function initDrawingsViewer() {
         bulkPdf.style.display = '';
         bulkPdf.onclick = (e) => {
           e.preventDefault();
-          withButtonSpinner(bulkPdf, () =>
-            downloadWithApiKey(library.downloadPdfUrl, toKebab(library.name || 'drawings') + '-pdf')
-          ).catch((err) => {
+          withButtonSpinner(bulkPdf, () => bulkDownload('pdf', library)).catch((err) => {
             console.error('[cad] bulk pdf download failed:', err);
           });
         };
@@ -426,9 +462,7 @@ export function initDrawingsViewer() {
         bulkDwg.style.display = '';
         bulkDwg.onclick = (e) => {
           e.preventDefault();
-          withButtonSpinner(bulkDwg, () =>
-            downloadWithApiKey(library.downloadDwgUrl, toKebab(library.name || 'drawings') + '-dwg')
-          ).catch((err) => {
+          withButtonSpinner(bulkDwg, () => bulkDownload('dwg', library)).catch((err) => {
             console.error('[cad] bulk dwg download failed:', err);
           });
         };
@@ -588,6 +622,25 @@ export function initDrawingsViewer() {
     runSearch(term);
   }
 
+  // Resets category + search back to their unselected state without
+  // touching the library selection (the grid stays populated).
+  function wireClearFilters() {
+    const btn = document.querySelector('.clear-filter-btn');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      resetPage();
+      state.filters.category = '';
+      state.filters.search = '';
+      if (searchInput) searchInput.value = '';
+      if (categoryPlaceholder) {
+        categoryPlaceholder.textContent = categoryPlaceholderDefaultText;
+        categoryPlaceholder.classList.remove('is-selected');
+      }
+      applyFilters();
+    });
+  }
+
   function wireViewMore() {
     const btn = document.querySelector('.button-view-more');
     if (!btn) return;
@@ -619,6 +672,7 @@ export function initDrawingsViewer() {
       safe('category', wireCategory);
       safe('search', wireSearch);
       safe('view-more', wireViewMore);
+      safe('clear-filters', wireClearFilters);
       safe('selection-download', wireSelectionDownload);
       safe('clear-selection', wireClearSelection);
       safe('preload-search', preloadSearchFromQuery);

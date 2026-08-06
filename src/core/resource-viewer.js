@@ -65,6 +65,16 @@ export function initResourceViewer(options = {}) {
   const searchBtn = document.querySelector('[data-role="search-btn"]');
   const searchForm = searchInput ? searchInput.closest('form') : document.querySelector('.cad-lib-search-form');
 
+  // Captured before any filter interaction so the clear-filter button can
+  // restore each dropdown's exact pre-selection label/state.
+  const installationDropdown = document.querySelector('.resource-filter-drowpdown[data-res-filter="installationtypes"]');
+  const installationPlaceholder = installationDropdown ? installationDropdown.querySelector('.filter-placeholder') : null;
+  const installationPlaceholderDefaultText = installationPlaceholder ? installationPlaceholder.textContent : '';
+
+  const typeDropdown = document.querySelector('.resource-filter-drowpdown[data-res-filter="type"]');
+  const typePlaceholder = typeDropdown ? typeDropdown.querySelector('.filter-placeholder') : null;
+  const typePlaceholderDefaultText = typePlaceholder ? typePlaceholder.textContent : '';
+
   const state = {
     allResources: [],
     filters: { installationType: '', type: '', search: '' },
@@ -373,7 +383,7 @@ export function initResourceViewer(options = {}) {
   }
 
   function wireSelectionDownload() {
-    const btn = document.querySelector('.selection-bulk-download-btn');
+    const btn = document.querySelector('.bulk-download-btn');
     if (!btn) return;
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -634,6 +644,29 @@ export function initResourceViewer(options = {}) {
     if (link) link.click();
   }
 
+  // Resets installation type, resource type, and search back to their
+  // unselected state.
+  function wireClearFilters() {
+    const btn = document.querySelector('.clear-filter-btn');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      state.filters.installationType = '';
+      state.filters.type = '';
+      state.filters.search = '';
+      if (searchInput) searchInput.value = '';
+      if (installationPlaceholder) {
+        installationPlaceholder.textContent = installationPlaceholderDefaultText;
+        installationPlaceholder.classList.remove('is-selected');
+      }
+      if (typePlaceholder) {
+        typePlaceholder.textContent = typePlaceholderDefaultText;
+        typePlaceholder.classList.remove('is-selected');
+      }
+      applyFilters();
+    });
+  }
+
   function wireZipDownload() {
     const btn = document.querySelector('.tag-file-type');
     if (!btn) return;
@@ -692,6 +725,7 @@ export function initResourceViewer(options = {}) {
       );
       safe('preload-category', preloadCategoryFromQuery);
       safe('search', wireSearch);
+      safe('clear-filters', wireClearFilters);
       safe('zip-download', wireZipDownload);
       safe('selection-download', wireSelectionDownload);
       safe('clear-selection', wireClearSelection);
