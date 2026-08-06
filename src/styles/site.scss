@@ -2138,3 +2138,48 @@ margin: 0 !important;
 
   .aluminium-hero-bg-wrapper>.w-embed::before,
   .aluminium-hero-bg-wrapper>.w-embed::after{content:none !important;}
+
+  /* ============================================================
+   Contact page - Individual project page
+   ============================================================ */
+
+     .contact-us-form-wrapper .content-stack h2{
+    margin-top: -24px;
+  }
+
+
+  /* ============================================================
+   Environments Page - Individual project page
+   ============================================================ */
+  .colour-environment-colours-flex {
+    display: flex !important;
+  }
+
+  .colour-color-palette-item {
+    flex: 1 1 0% !important;
+    position: relative;
+    z-index: 1;
+    margin-left: -55px;
+    transition:
+      flex-grow 0.6s cubic-bezier(0.39, 0.575, 0.565, 1),
+      z-index 0s 0.6s !important;
+  }
+
+  .colour-color-palette-item:hover {
+    transition:
+      flex 0.6s cubic-bezier(0.39, 0.575, 0.565, 1),
+      z-index 0s 0s;
+  }
+
+  .colour-environment-colours-flex:hover .colour-color-palette-item:not(:hover) {
+    flex: 0.8 1 0% !important;
+  }
+  .colour-environment-colours-flex:hover .colour-color-palette-item:hover {
+    flex: 1.5 1 0% !important;
+  }
+
+  .cg-color-palette:has(.is-light-color) .color-name-wrapper h6 {
+    color: var(--_brand-colors---brand-black);
+  }
+
+  
