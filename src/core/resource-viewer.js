@@ -555,6 +555,7 @@ export function initResourceViewer(options = {}) {
     options.forEach((opt) => {
       const link = document.createElement('a');
       link.setAttribute('href', '#');
+      link.setAttribute('data-value', opt.value);
       link.className = 'resources-search-fitler-item w-dropdown-link';
       link.textContent = opt.label;
       nav.appendChild(link);
@@ -617,6 +618,22 @@ export function initResourceViewer(options = {}) {
     runSearch(term);
   }
 
+  // Lets a link like "?category=care-maintenance" preload the resource-type
+  // dropdown once it's wired, by clicking the matching option link — reuses
+  // its normal label update / applyFilters / close-dropdown flow rather than
+  // duplicating it.
+  function preloadCategoryFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = [...params].find(([k]) => k.toLowerCase() === 'category')?.[1] ?? null;
+    if (!raw) return;
+    const value = raw.trim().toLowerCase();
+    if (!RESOURCE_TYPE_OPTIONS.some((opt) => opt.value === value)) return;
+
+    const dropdown = document.querySelector('.resource-filter-drowpdown[data-res-filter="type"]');
+    const link = dropdown && dropdown.querySelector('nav a[data-value="' + value + '"]');
+    if (link) link.click();
+  }
+
   function wireZipDownload() {
     const btn = document.querySelector('.tag-file-type');
     if (!btn) return;
@@ -673,6 +690,7 @@ export function initResourceViewer(options = {}) {
           state.filters.type = v;
         })
       );
+      safe('preload-category', preloadCategoryFromQuery);
       safe('search', wireSearch);
       safe('zip-download', wireZipDownload);
       safe('selection-download', wireSelectionDownload);

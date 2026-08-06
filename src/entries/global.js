@@ -12,8 +12,12 @@ import { initSampleRequest } from '../core/sample-request.js';
 import { initSiteForms } from '../core/site-forms.js';
 import { initWorkingSpecLinks } from '../core/working-spec-links.js';
 
-// Set the persona on the <html> element immediately, before paint, to avoid a
-// flash of the wrong persona.
+// Fallback only — this file is loaded from the Footer, so by the time this
+// runs the browser may already have painted the wrong persona. The real
+// FOUC fix is dist/persona-init.min.js (src/entries/persona-init.js), which
+// must be included as a blocking <script> in Site Settings > Custom Code >
+// Head, above the site.css link. This line just keeps things correct on any
+// page where that head script was left out.
 const persona = localStorage.getItem('persona') || 'professional';
 document.documentElement.setAttribute('data-persona', persona);
 

@@ -62,6 +62,14 @@ Pin to the tag, never `@latest` or a branch — jsDelivr caches those and you'll
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/yourname/webflow-scripts@v1.0.0/dist/site.min.css" />
 ```
 
+**Persona pre-paint script** (Site Settings → Custom Code → Head, placed *above* the CSS link, no `defer`/`async`):
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/NuwallCladding/nuwall-webflow@1.0.2/dist/persona-init.min.js"></script>
+```
+
+This has to be a blocking head script, not part of the footer-loaded `global.js` bundle — by the time a footer script runs, the browser can already have painted the page, so setting `data-persona` there flashes the wrong persona first.
+
 **Page-specific** (Page Settings → Custom Code):
 
 ```html

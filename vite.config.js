@@ -5,6 +5,7 @@ import { resolve } from 'path';
 // Add a new line here whenever you create a new page-specific entry.
 const entries = {
   global: 'src/entries/global.js',
+  'persona-init': 'src/entries/persona-init.js',
   'drawings-viewer': 'src/entries/drawings-viewer.js',
   'colour-picker': 'src/entries/colour-picker.js',
   'home-page': 'src/entries/home-page.js',
