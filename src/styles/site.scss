@@ -2212,3 +2212,7 @@ margin: 0 !important;
   opacity: 1;
   transition: opacity 700ms ease;
 }
+
+html, body {
+  overflow-x: clip;
+}
