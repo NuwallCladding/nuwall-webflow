@@ -136,6 +136,5 @@ export function initAccordion() {
     trigger.addEventListener('click', () => toggle(item));
   });
 
-  const defaultItem = document.querySelector('.accordion-item[data-accordion-default="true"]');
-  if (defaultItem) openInstant(defaultItem);
+  document.querySelectorAll('.accordion-item[data-accordion-default="true"]').forEach(openInstant);
 }
