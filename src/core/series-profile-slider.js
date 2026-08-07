@@ -141,9 +141,7 @@ export function initSeriesProfileSlider() {
   }
 
   // ── 2. Tab switching ──
-  // `instant` skips the fade for the initial boot-time activation, where
-  // there's no previously-visible panel to crossfade away from.
-  function activateTab(tabId, instant) {
+  function activateTab(tabId) {
     tabItems.forEach((tab) => {
       tab.classList.toggle('is-active', tab.getAttribute('data-tab') === tabId);
     });
@@ -166,37 +164,8 @@ export function initSeriesProfileSlider() {
     tabDetails.forEach((el) => {
       const isActive = el.getAttribute('data-tab-details') === tabId;
       el.classList.toggle('is-active', isActive);
-      setTabDetailsVisibility(el, isActive, instant);
+      el.style.display = isActive ? '' : 'none';
     });
-  }
-
-  // Fades a tab-details panel in/out instead of snapping display on/off. The
-  // outgoing panel is fully hidden before the incoming one is shown (rather
-  // than crossfading simultaneously), so the two never overlap in the
-  // layout — that overlap would otherwise cause a visible jump while both
-  // panels occupy space during the transition.
-  const TAB_DETAILS_FADE_MS = 200;
-
-  function setTabDetailsVisibility(el, visible, instant) {
-    if (instant) {
-      el.style.display = visible ? '' : 'none';
-      el.style.opacity = visible ? '1' : '0';
-      return;
-    }
-
-    if (visible) {
-      window.setTimeout(() => {
-        if (el.style.display === 'none') el.style.display = '';
-        requestAnimationFrame(() => {
-          el.style.opacity = '1';
-        });
-      }, TAB_DETAILS_FADE_MS);
-    } else {
-      el.style.opacity = '0';
-      window.setTimeout(() => {
-        if (el.style.opacity === '0') el.style.display = 'none';
-      }, TAB_DETAILS_FADE_MS);
-    }
   }
 
   tabItems.forEach((tab) => {
@@ -288,7 +257,7 @@ export function initSeriesProfileSlider() {
   // ── Boot sequence ──
   loadProfileImages().then(() => {
     const firstTabId = tabItems[0]?.getAttribute('data-tab');
-    if (firstTabId) activateTab(firstTabId, true);
+    if (firstTabId) activateTab(firstTabId);
     initSwipers();
   });
 }
