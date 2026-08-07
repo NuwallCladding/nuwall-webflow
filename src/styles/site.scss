@@ -2217,3 +2217,21 @@ html, body {
   overflow-x: clip;
   max-width: 100%;
 }
+
+.nav-wrapper-global,
+.com-mega-menu-outer,
+.com-mega-menu,
+.com-mobile-menu,
+.com-mobile-menu--bar,
+.com-mobile-menu--panel {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+.thumnail--image.image-color {
+    min-width: 200%;   /* ← 200% of parent = the 760px */
+    min-height: 200%;
+}
+.thumnail--image.image-finish {
+    min-width: 150%;   /* ← the 570px */
+    min-height: 150%;
+}
