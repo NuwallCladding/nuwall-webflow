@@ -99,6 +99,27 @@ function toggle(item) {
   else open(item);
 }
 
+// Used for `data-accordion-default` on load: sets straight to `auto` instead
+// of animating through a measured px height. A default-open item may still
+// be inside a hidden ancestor at init time (e.g. an inactive tab panel that
+// another script reveals later asynchronously) — measuring its height there
+// would read 0 and bake that in permanently, since a later `open()` call
+// no-ops once `is-open` is already set. `auto` sidesteps the measurement
+// entirely and resolves correctly whenever the item actually becomes
+// visible. It also matches the expected behaviour better: a default-open
+// item shouldn't play an opening animation on page load.
+function openInstant(item) {
+  if (!item || item.classList.contains('is-open')) return;
+  const content = item.querySelector('.accordion-content');
+  const icon = item.querySelector('.accordion-icon');
+  if (!content) return;
+
+  content.style.height = 'auto';
+  content.style.opacity = '1';
+  if (icon) icon.innerHTML = ICON_MINUS;
+  item.classList.add('is-open');
+}
+
 export function initAccordion() {
   // Safe to call more than once (e.g. once on page load, then again after
   // an async render adds new `.accordion-item`s) — already-wired triggers
@@ -116,5 +137,5 @@ export function initAccordion() {
   });
 
   const defaultItem = document.querySelector('.accordion-item[data-accordion-default="true"]');
-  if (defaultItem) open(defaultItem);
+  if (defaultItem) openInstant(defaultItem);
 }

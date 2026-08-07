@@ -22,11 +22,6 @@ html {
 .content-stack > .cad-sub-heading {
   margin-top: 30px;
 }
-.rich-text-block,
-.w-richtext {
-  padding: 0;
-  margin: 0;
-}
 .rich-text-block:has(> p) p,
 .w-richtext:has(> p) p,
 .paragraph-stack:has(> p) p {
@@ -1663,10 +1658,10 @@ margin: 0 !important;
   height: 100%; /* or 100vh, or whatever your container defines */
 }
 
-/* Wide Screen */
+/* Wide Screen */ 
 @media (max-width: 1382px) {
   .colour-grid {
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     row-gap: 25px;
   }
   .grid-12col.row-gap-1x {
