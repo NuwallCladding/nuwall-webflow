@@ -15,19 +15,25 @@ export function initMobileMenu() {
   }
 
   function setMobileBarColors() {
+    document.querySelectorAll('.com-mobile-menu--bar').forEach((bar) => {
+      bar.style.backgroundColor = 'var(--_brand-colors---brand-black)';
+    });
     document.querySelectorAll('.com-mobile-menu--bar .nav-brand_linkblock svg path').forEach((p) => {
       p.style.fill = 'var(--_brand-colors---brand-light-grey)';
     });
-    document.querySelectorAll('.com-mobile-menu--trigger h5').forEach((h) => {
+    document.querySelectorAll('.com-mobile-menu--trigger svg path').forEach((h) => {
       h.style.color = 'var(--_brand-colors---brand-light-grey)';
     });
   }
 
   function clearMobileBarColors() {
+    document.querySelectorAll('.com-mobile-menu--bar').forEach((bar) => {
+      bar.style.backgroundColor = '';
+    });
     document.querySelectorAll('.com-mobile-menu--bar .nav-brand_linkblock svg path').forEach((p) => {
       p.style.fill = '';
     });
-    document.querySelectorAll('.com-mobile-menu--trigger h5').forEach((h) => {
+    document.querySelectorAll('.com-mobile-menu--trigger svg path').forEach((h) => {
       h.style.color = '';
     });
   }
