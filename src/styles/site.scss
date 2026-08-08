@@ -1234,6 +1234,11 @@ select {
     height: 100vh;
     max-height: 100vh;
     border-radius: 0;
+    padding-top:3rem;
+    padding-bottom:3rem;
+  }
+  .rl-preview-close {
+    top:3rem;
   }
 }
 .rl-preview-close {
