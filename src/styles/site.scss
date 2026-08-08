@@ -981,11 +981,6 @@ select {
     height: 100% !important;
   }
 
-  /* the swiper container itself needs a real height from somewhere */
-  .cs-swiper {
-    height: 100dvh !important; /* or whatever your hero height should be */
-  }
-
   .cs-swiper .swiper-slide .cs-slide-image {
     width: 100% !important;
     height: 100% !important;
