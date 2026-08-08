@@ -155,17 +155,28 @@ export function initResourceViewer(options = {}) {
   }
 
   // Opens a blank tab synchronously (so it isn't popup-blocked once the
-  // fetch resolves later), then points it at the fetched blob.
-  function previewWithApiKey(url) {
+  // fetch resolves later), then embeds the fetched blob in an iframe with
+  // the tab titled after the real filename — navigating straight to the
+  // blob URL (the old approach) left the tab title and address bar showing
+  // the raw blob UUID instead.
+  function previewWithApiKey(url, baseName) {
     const win = window.open('', '_blank');
     return fetch(url, { headers: { 'x-api-key': API.key } })
       .then((res) => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.blob();
+        const filename = filenameFromResponse(res, baseName);
+        return res.blob().then((blob) => ({ blob, filename }));
       })
-      .then((blob) => {
+      .then(({ blob, filename }) => {
         const blobUrl = URL.createObjectURL(blob);
-        if (win) win.location = blobUrl;
+        if (win) {
+          win.document.title = filename;
+          win.document.body.style.margin = '0';
+          const iframe = win.document.createElement('iframe');
+          iframe.src = blobUrl;
+          iframe.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:0;';
+          win.document.body.appendChild(iframe);
+        }
       })
       .catch((err) => {
         if (win) win.close();
@@ -272,7 +283,9 @@ export function initResourceViewer(options = {}) {
         previewLink.href = '#';
         previewLink.onclick = (e) => {
           e.preventDefault();
-          withButtonSpinner(previewLink, () => previewWithApiKey(doc.viewUrl)).catch((err) => {
+          withButtonSpinner(previewLink, () =>
+            previewWithApiKey(doc.viewUrl, toKebab(doc.title || 'resource'))
+          ).catch((err) => {
             console.error('[resources] preview failed:', doc.title, err);
           });
         };
