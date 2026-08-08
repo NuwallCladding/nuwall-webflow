@@ -6,7 +6,6 @@ export function initNavScroll() {
 
   const scrollThreshold = 2;
   const navHeight = '96px';
-  const viewportHeight = window.innerHeight;
   const megaWrapper = document.querySelector('.com-mega-wrapper');
   const mobileBar = document.querySelector('.com-mobile-menu--bar');
   let lastScroll = 0;
@@ -24,17 +23,26 @@ export function initNavScroll() {
 
   const brandBlack = resolveColor('--_brand-colors---brand-black');
   const brandLightGrey = resolveColor('--_brand-colors---brand-light-grey');
-  let scrollBgColor = null;
 
-  // Picks the scrolled-state background as the opposite of whatever the L1 links render in,
-  // so nav text stays legible against it.
-  const navLink = document.querySelector('.com-mega-menu__link-l1 .nav--link');
-  if (navLink) {
-    const linkColor = getComputedStyle(navLink).color;
-    if (linkColor === brandBlack) scrollBgColor = 'var(--_brand-colors---brand-light-grey)';
-    else if (linkColor === brandLightGrey) scrollBgColor = 'var(--_brand-colors---brand-black)';
+  // Given a rendered colour, returns the opposite brand colour (as a CSS var string)
+  // so nav content stays legible against the scrolled-state background.
+  function oppositeBg(renderedColor) {
+    if (renderedColor === brandBlack) return 'var(--_brand-colors---brand-light-grey)';
+    if (renderedColor === brandLightGrey) return 'var(--_brand-colors---brand-black)';
+    return null;
   }
-  if (!scrollBgColor) scrollBgColor = 'var(--_brand-colors---brand-light-grey)';
+
+  // Mega wrapper: opposite of the L1 link colour.
+  let megaBgColor = null;
+  const navLink = document.querySelector('.com-mega-menu__link-l1 .nav--link');
+  if (navLink) megaBgColor = oppositeBg(getComputedStyle(navLink).color);
+  if (!megaBgColor) megaBgColor = 'var(--_brand-colors---brand-light-grey)';
+
+  // Mobile bar: opposite of the brand SVG's path fill.
+  let mobileBgColor = null;
+  const brandPath = document.querySelector('.head--nav--brand.mobile path');
+  if (brandPath) mobileBgColor = oppositeBg(getComputedStyle(brandPath).fill);
+  if (!mobileBgColor) mobileBgColor = 'var(--_brand-colors---brand-light-grey)';
 
   if (megaWrapper) megaWrapper.style.transition = 'background-color 600ms';
   if (mobileBar) mobileBar.style.transition = 'background-color 600ms';
@@ -48,7 +56,9 @@ export function initNavScroll() {
   function syncPanelState() {
     const open = anyOpen();
     navWrapper.classList.toggle('is-panel-open', open);
-    if (open) navWrapper.style.transform = 'none';
+    // Always clear the inline hide-transform so the nav is visible whenever a
+    // panel opens *or* closes; the scroll handler takes over again on next scroll.
+    navWrapper.style.transform = 'none';
   }
 
   // Keeps the nav pinned open the instant a menu panel opens/closes, without waiting for scroll.
@@ -57,7 +67,7 @@ export function initNavScroll() {
     panels.forEach((p) => observer.observe(p, { attributes: true, attributeFilter: ['class'] }));
   }
 
-  window.addEventListener('scroll', () => {
+  function handleScroll() {
     if (anyOpen()) {
       navWrapper.classList.add('is-panel-open');
       navWrapper.style.transform = 'none';
@@ -67,15 +77,16 @@ export function initNavScroll() {
     navWrapper.classList.remove('is-panel-open');
 
     const currentScroll = window.pageYOffset;
-    if (megaWrapper) megaWrapper.style.backgroundColor = currentScroll === 0 ? '' : scrollBgColor;
-    if (mobileBar) mobileBar.style.backgroundColor = currentScroll === 0 ? '' : scrollBgColor;
+    if (megaWrapper) megaWrapper.style.backgroundColor = currentScroll === 0 ? '' : megaBgColor;
+    if (mobileBar) mobileBar.style.backgroundColor = currentScroll === 0 ? '' : mobileBgColor;
 
     if (currentScroll === 0) {
       navWrapper.style.transform = 'none';
       lastScroll = currentScroll;
       return;
     }
-    if (currentScroll <= viewportHeight * 0.3) {
+    // Read viewport height live so resize / orientation changes are respected.
+    if (currentScroll <= window.innerHeight * 0.3) {
       navWrapper.style.transform = 'none';
       lastScroll = currentScroll;
       return;
@@ -85,5 +96,21 @@ export function initNavScroll() {
     if (delta > scrollThreshold) navWrapper.style.transform = `translateY(-${navHeight})`;
     else if (delta < -scrollThreshold) navWrapper.style.transform = 'none';
     lastScroll = currentScroll;
-  });
+  }
+
+  // Throttle to one run per frame, and mark the listener passive since we never preventDefault.
+  let ticking = false;
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    },
+    { passive: true }
+  );
 }
