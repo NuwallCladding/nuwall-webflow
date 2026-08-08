@@ -16,12 +16,10 @@ export function initFinishesTabs() {
       trigger.classList.toggle('is-active', trigger.getAttribute('data-tab-trigger') === tabId);
     });
 
-    // Images — crossfade, no display toggling.
+    // Images — show/hide via display, no crossfade.
     images.forEach((img) => {
-      img.style.transition = 'opacity 600ms ease';
       const isActive = img.getAttribute('data-tab-image') === tabId;
-      img.style.opacity = isActive ? '1' : '0';
-      img.style.visibility = isActive ? 'visible' : 'hidden';
+      img.style.display = isActive ? '' : 'none';
     });
 
     // Content — stagger children in.
@@ -29,8 +27,7 @@ export function initFinishesTabs() {
       const children = content.children;
 
       if (content.getAttribute('data-tab-content') === tabId) {
-        content.style.visibility = 'visible';
-        content.style.opacity = '1';
+        content.style.display = '';
 
         Array.from(children).forEach((el, index) => {
           el.style.transition = 'none';
@@ -54,8 +51,7 @@ export function initFinishesTabs() {
           el.style.transform = 'translateY(1rem)';
           el.style.transitionDelay = '0ms';
         });
-        content.style.visibility = 'hidden';
-        content.style.opacity = '0';
+        content.style.display = 'none';
       }
     });
   }
