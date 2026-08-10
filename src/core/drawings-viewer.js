@@ -588,11 +588,11 @@ export function initDrawingsViewer() {
     });
   }
 
-  const SEARCH_MIN_CHARS = 4;
+  const SEARCH_MIN_CHARS = 2;
 
   function runSearch(value) {
     const q = (value || '').trim();
-    // Only treat as an active search at 4+ chars; otherwise clear it.
+    // Only treat as an active search at 2+ chars; otherwise clear it.
     state.filters.search = q.length >= SEARCH_MIN_CHARS ? q : '';
     resetPage();
     applyFilters();
