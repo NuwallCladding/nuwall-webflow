@@ -219,8 +219,11 @@ export function initDrawingsViewer() {
       img.alt = doc.name || '';
     }
 
-    const nameEl = card.querySelector('.is-bold');
+    const nameEl = card.querySelector('.drawing-name');
     if (nameEl) nameEl.textContent = doc.name || '';
+
+    const codeEl = card.querySelector('.drawing-code');
+    if (codeEl) codeEl.textContent = doc.code || '';
 
     const hasPdf = !!(doc.pdfFile && doc.pdfFile.url);
     const hasDwg = !!(doc.dwgFile && doc.dwgFile.url);
@@ -274,6 +277,7 @@ export function initDrawingsViewer() {
     card.setAttribute('data-library', libraryValue(library));
     card.setAttribute('data-category', (doc.cat || []).join(' '));
     card.setAttribute('data-name', (doc.name || '').toLowerCase());
+    card.setAttribute('data-code', (doc.code || '').toLowerCase());
 
     return card;
   }
@@ -366,7 +370,10 @@ export function initDrawingsViewer() {
       // No library selected yet — keep the grid empty rather than showing everything.
       const matchLibrary = !!f.library && card.getAttribute('data-library') === f.library;
       const matchCategory = !f.category || card.getAttribute('data-category').split(' ').indexOf(toKebab(f.category)) !== -1;
-      const matchSearch = !f.search || card.getAttribute('data-name').indexOf(f.search.toLowerCase()) !== -1;
+      const matchSearch =
+        !f.search ||
+        card.getAttribute('data-name').indexOf(f.search.toLowerCase()) !== -1 ||
+        card.getAttribute('data-code').indexOf(f.search.toLowerCase()) !== -1;
 
       card.style.display = 'none';
       if (matchLibrary && matchCategory && matchSearch) {

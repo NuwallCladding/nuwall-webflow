@@ -1509,7 +1509,7 @@ select {
   .centered-wrapper[data-bg-color='blue'] {
     background-color: #b8c5d3; /* Use a Webflow color variable */
   }
-  @media (min-width: 992px) {
+  @media (min-width: 728px) {
    .inspiration-project-item[data-highlight='Yes'] {
     grid-column: span 2!important;
     grid-row: span 2!important;
