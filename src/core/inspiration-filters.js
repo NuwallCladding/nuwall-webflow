@@ -38,6 +38,112 @@ export function initInspirationFilters() {
   const cardValues = (card, group) =>
     $$(`[data-filter-set="${group}"]`, card).map((el) => el.textContent.trim().toLowerCase());
 
+  // ---- Mobile dropdowns (union with pills) ----------------------------
+  // Mobile swaps the pill groups for `.resource-filter-drowpdown` selects —
+  // same component drawings-viewer.js/resource-viewer.js use. The "profile"
+  // pill group surfaces as data-res-filter="series" on mobile (its values
+  // are product series names); "sector" keeps its name on both.
+  const DROPDOWN_FILTER_KEY = { profile: 'series', sector: 'sector' };
+
+  const getDropdownEl = (group) =>
+    $(`.resource-filter-drowpdown[data-res-filter="${DROPDOWN_FILTER_KEY[group]}"]`);
+
+  // Captured before any interaction so "All" can restore each dropdown's
+  // exact default label.
+  const dropdownDefaults = {};
+  Object.keys(DROPDOWN_FILTER_KEY).forEach((group) => {
+    const dd = getDropdownEl(group);
+    const placeholder = dd ? dd.querySelector('.filter-placeholder') : null;
+    dropdownDefaults[group] = placeholder ? placeholder.textContent.trim() : 'All';
+  });
+
+  // Close a Webflow dropdown without leaving its internal open-state stale
+  // (replay an outside pointer event so Webflow closes it itself; manual
+  // class removal is a guaranteed visual fallback).
+  function closeDropdown(link) {
+    const dropdown = link.closest('.w-dropdown');
+    if (!dropdown) return;
+
+    ['mousedown', 'mouseup', 'click'].forEach((type) => {
+      document.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true }));
+    });
+
+    const toggle = dropdown.querySelector('.w-dropdown-toggle');
+    const list = dropdown.querySelector('.w-dropdown-list');
+    dropdown.classList.remove('w--open');
+    if (toggle) {
+      toggle.classList.remove('w--open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    if (list) list.classList.remove('w--open');
+  }
+
+  function updateDropdownLabel(group, text) {
+    const dd = getDropdownEl(group);
+    if (!dd) return;
+    const label = dd.querySelector('.filter-placeholder');
+    if (!label) return;
+    label.textContent = text;
+    label.classList.toggle('is-selected', text !== dropdownDefaults[group]);
+  }
+
+  // Single source of truth for both pills and mobile dropdowns — keeps
+  // whichever one the user didn't touch in sync with the one they did.
+  function setActiveFilter(group, val, options) {
+    if (!(group in state.active)) return;
+    state.active[group] = val;
+
+    getGroupPills(group).forEach((p) => {
+      p.classList.toggle('is-active', val !== null && p.getAttribute('data-filter-item').toLowerCase() === val);
+    });
+
+    if (val === null) {
+      updateDropdownLabel(group, dropdownDefaults[group]);
+    } else {
+      const pill = getGroupPills(group).find((p) => p.getAttribute('data-filter-item').toLowerCase() === val);
+      const label = pill ? (pill.querySelector('p') || pill).textContent.trim() : val;
+      updateDropdownLabel(group, label);
+    }
+
+    if (!options || !options.fromURL) applyFilters();
+  }
+
+  function wireMobileDropdown(group) {
+    const dd = getDropdownEl(group);
+    if (!dd) return;
+    const nav = dd.querySelector('nav');
+    if (!nav) return;
+
+    nav.innerHTML = '';
+
+    const allLink = document.createElement('a');
+    allLink.setAttribute('href', '#');
+    allLink.className = 'resources-search-fitler-item-5 w-dropdown-link';
+    allLink.textContent = 'All';
+    nav.appendChild(allLink);
+    allLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      setActiveFilter(group, null);
+      closeDropdown(allLink);
+    });
+
+    getGroupPills(group).forEach((pill) => {
+      const value = pill.getAttribute('data-filter-item').toLowerCase();
+      const label = (pill.querySelector('p') || pill).textContent.trim();
+
+      const link = document.createElement('a');
+      link.setAttribute('href', '#');
+      link.className = 'resources-search-fitler-item-5 w-dropdown-link';
+      link.textContent = label;
+      nav.appendChild(link);
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        setActiveFilter(group, value);
+        closeDropdown(link);
+      });
+    });
+  }
+
   // ---- Core filter logic & URL sync ----------------------------------
 
   function applyFilters() {
@@ -86,21 +192,8 @@ export function initInspirationFilters() {
     const profileVal = params.get('profile') ? params.get('profile').split(',')[0].toLowerCase() : null;
     const sectorVal = params.get('sector') ? params.get('sector').split(',')[0].toLowerCase() : null;
 
-    if (profileVal) {
-      state.active.profile = profileVal;
-      const pill = getGroupPills('profile').find(
-        (p) => p.getAttribute('data-filter-item').toLowerCase() === profileVal
-      );
-      if (pill) pill.classList.add('is-active');
-    }
-
-    if (sectorVal) {
-      state.active.sector = sectorVal;
-      const pill = getGroupPills('sector').find(
-        (p) => p.getAttribute('data-filter-item').toLowerCase() === sectorVal
-      );
-      if (pill) pill.classList.add('is-active');
-    }
+    if (profileVal) setActiveFilter('profile', profileVal, { fromURL: true });
+    if (sectorVal) setActiveFilter('sector', sectorVal, { fromURL: true });
 
     applyFilters();
   }
@@ -116,10 +209,7 @@ export function initInspirationFilters() {
       const group = groupOfPill(pill);
       if (!group) return;
 
-      state.active[group] = null;
-      pill.classList.remove('is-active');
-
-      applyFilters();
+      setActiveFilter(group, null);
       return;
     }
 
@@ -133,17 +223,7 @@ export function initInspirationFilters() {
     const val = pill.getAttribute('data-filter-item').toLowerCase();
     const wasActive = state.active[group] === val;
 
-    // Single-select: clear whatever else was active in this group first.
-    getGroupPills(group).forEach((p) => p.classList.remove('is-active'));
-
-    if (wasActive) {
-      state.active[group] = null;
-    } else {
-      state.active[group] = val;
-      pill.classList.add('is-active');
-    }
-
-    applyFilters();
+    setActiveFilter(group, wasActive ? null : val);
   }
 
   // ---- Search (live, min CONFIG.MIN_SEARCH characters) --------------------
@@ -214,6 +294,8 @@ export function initInspirationFilters() {
 
   document.addEventListener('click', handleDocumentClick);
   setupSearch();
+  wireMobileDropdown('profile');
+  wireMobileDropdown('sector');
 
   applyFromURL();
 }
