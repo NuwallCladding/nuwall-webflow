@@ -6,6 +6,17 @@ export function initProfileSwitcher() {
   const profileImages = document.querySelectorAll('.profile_images .w-dyn-item');
   if (!profileImages.length) return;
 
+  // Tag each profile link's href with its slug (?profile=mono-200) so the
+  // series page it points to knows which profile tab to land on.
+  document.querySelectorAll('a[data-slug][data-series][data-profile]').forEach((link) => {
+    const slug = link.getAttribute('data-slug');
+    const href = link.getAttribute('href');
+    if (!slug || !href) return;
+    const url = new URL(href, window.location.origin);
+    url.searchParams.set('profile', slug);
+    link.setAttribute('href', url.pathname + url.search + url.hash);
+  });
+
   function setActiveImage(profileName) {
     profileImages.forEach((img) => {
       const imgEl = img.matches('[data-profile-image]')

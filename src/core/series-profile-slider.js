@@ -254,10 +254,31 @@ export function initSeriesProfileSlider() {
     });
   }
 
+  // A profile link on the profiles page (profile-switcher.js) tags its href
+  // with ?profile=<slug> so this page knows which tab to land on — only
+  // honoured if it actually matches a tab, then stripped from the URL so it
+  // doesn't linger on refresh/share.
+  function profileTabIdFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const profileParam = params.get('profile');
+    if (!profileParam) return null;
+    const match = Array.from(tabItems).find((tab) => tab.getAttribute('data-tab') === profileParam);
+    return match ? profileParam : null;
+  }
+
+  function clearProfileQueryParam() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('profile');
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
+
   // ── Boot sequence ──
   loadProfileImages().then(() => {
+    const urlTabId = profileTabIdFromURL();
     const firstTabId = tabItems[0]?.getAttribute('data-tab');
-    if (firstTabId) activateTab(firstTabId);
+    const initialTabId = urlTabId || firstTabId;
+    if (initialTabId) activateTab(initialTabId);
+    if (urlTabId) clearProfileQueryParam();
     initSwipers();
   });
 }
