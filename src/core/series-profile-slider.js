@@ -82,6 +82,50 @@ const THUMB_FALLBACK =
   PLAY_SVG +
   '</div>';
 
+// Vimeo's iframe shows its own static poster (a frame picked from partway
+// through the video) for a moment before playback actually starts — jarring
+// since it's not the first frame. This overlay hides that poster behind a
+// blank cover and only fades out once Vimeo's postMessage API reports
+// playback has actually begun, so viewers see blank → playing instead of
+// poster-flash → playing. Re-armed on every restart since slideChange below
+// reloads the iframe (and therefore the poster-flash) each time the slide
+// becomes active again.
+const VIMEO_PLAYER_ORIGIN = 'https://player.vimeo.com';
+const VIDEO_POSTER_FALLBACK_MS = 1500; // in case autoplay is blocked and 'play' never fires
+
+function wireVimeoPoster(iframe, poster) {
+  if (!iframe || !poster) return;
+
+  let fallbackTimer = null;
+
+  function hidePoster() {
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+    poster.style.opacity = '0';
+  }
+
+  window.addEventListener('message', (e) => {
+    if (e.origin !== VIMEO_PLAYER_ORIGIN || e.source !== iframe.contentWindow) return;
+    let data;
+    try {
+      data = JSON.parse(e.data);
+    } catch {
+      return;
+    }
+    if (data.event === 'play') hidePoster();
+  });
+
+  iframe.addEventListener('load', () => {
+    iframe.contentWindow.postMessage(
+      JSON.stringify({ method: 'addEventListener', value: 'play' }),
+      VIMEO_PLAYER_ORIGIN
+    );
+    fallbackTimer = setTimeout(hidePoster, VIDEO_POSTER_FALLBACK_MS);
+  });
+}
+
 export function initSeriesProfileSlider() {
   const tabItems = document.querySelectorAll('.series-tab-item');
   const sliderItems = document.querySelectorAll('.series-slider-item');
@@ -140,11 +184,15 @@ export function initSeriesProfileSlider() {
           const videoSlide = document.createElement('div');
           videoSlide.classList.add('swiper-slide', 'swiper-slide--video');
           videoSlide.innerHTML =
-            '<div class="series-profile-swiper-image-wrapper">' +
+            '<div class="series-profile-swiper-image-wrapper" style="position:relative;">' +
             '<iframe src="' + videoUrl + '&controls=0&autoplay=1&loop=1&muted=1&background=1" ' +
             'frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" ' +
-            'allowfullscreen style="width:100%;height:100%;"></iframe></div>';
+            'allowfullscreen style="width:100%;height:100%;"></iframe>' +
+            '<div class="series-profile-video-poster" ' +
+            'style="position:absolute;inset:0;background:#2A2D2B;opacity:1;transition:opacity 250ms ease;pointer-events:none;"></div>' +
+            '</div>';
           mainWrapper.appendChild(videoSlide);
+          wireVimeoPoster(videoSlide.querySelector('iframe'), videoSlide.querySelector('.series-profile-video-poster'));
 
           const videoThumb = document.createElement('div');
           videoThumb.classList.add('thumb-slide', 'swiper-slide--video-thumb');
@@ -331,6 +379,8 @@ export function initSeriesProfileSlider() {
             const activeSlide = this.slides[this.activeIndex];
             const iframe = activeSlide?.querySelector('iframe');
             if (iframe) {
+              const poster = activeSlide.querySelector('.series-profile-video-poster');
+              if (poster) poster.style.opacity = '1';
               const src = iframe.src;
               iframe.src = '';
               iframe.src = src;
