@@ -2244,3 +2244,15 @@ html, body {
     min-width: 150%;   /* ← the 570px */
     min-height: 150%;
 }
+
+.body-small.w-richtext p {
+    color: var(--_brand-colors---brand-black);
+    letter-spacing: .005em;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 4px;
+    font-family: Manrope, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+    text-decoration: none;
+}
