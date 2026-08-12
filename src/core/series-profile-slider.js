@@ -162,7 +162,16 @@ export function initSeriesProfileSlider() {
     const hero = heroImagesBySlug.get(tabId);
     if (!hero) return;
     const heroImg = document.querySelector('.series-hero-bg-image img');
-    if (!heroImg || heroImg.src === hero.url) return;
+    if (!heroImg) return;
+    // Markup ships this hidden (display:none) so the wrong static image
+    // never flashes before JS has a real one to show — revealed the moment
+    // we actually have the correct image in place.
+    const heroWrapper = heroImg.closest('.series-hero-bg-image');
+
+    if (heroImg.src === hero.url) {
+      if (heroWrapper) heroWrapper.style.display = '';
+      return;
+    }
 
     if (pendingHeroFade) {
       clearTimeout(pendingHeroFade);
@@ -182,6 +191,7 @@ export function initSeriesProfileSlider() {
         // rather than let a stale srcset candidate win over the new src.
         heroImg.removeAttribute('srcset');
         heroImg.removeAttribute('sizes');
+        if (heroWrapper) heroWrapper.style.display = '';
         requestAnimationFrame(() => {
           heroImg.classList.remove('is-fading');
         });
