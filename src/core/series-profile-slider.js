@@ -46,6 +46,8 @@ export function initSeriesProfileSlider() {
   // all the same value across this markup) so activateTab() can look up the
   // hero image for whichever tab just became active.
   const heroImagesBySlug = new Map();
+  const HERO_FADE_MS = 300; // matches .series-hero-bg-image img's opacity transition in site.scss
+  let pendingHeroFade = null;
 
   // ── 1. Fetch & inject images ──
   async function loadProfileImages() {
@@ -156,18 +158,46 @@ export function initSeriesProfileSlider() {
   }
 
   // ── 2. Tab switching ──
+  // Crossfades the hero image to the active tab's profile image, same
+  // fade-out/swap/fade-in shape as profile-switcher.js's image swap —
+  // except that's toggling opacity on pre-loaded stacked images, while this
+  // is a single <img> whose src changes, so the new image is preloaded
+  // before fading back in (otherwise the fade-in would start over
+  // blank/undecoded pixels and read as a flash).
   function updateHeroImage(tabId) {
     const hero = heroImagesBySlug.get(tabId);
     if (!hero) return;
     const heroImg = document.querySelector('.series-hero-bg-image img');
-    if (!heroImg) return;
-    heroImg.src = hero.url;
-    heroImg.alt = hero.alt;
-    // Webflow's srcset/sizes point at the original static image's size
-    // variants — the fetched hero has no equivalents, so drop them rather
-    // than let a stale srcset candidate win over the new src.
-    heroImg.removeAttribute('srcset');
-    heroImg.removeAttribute('sizes');
+    if (!heroImg || heroImg.src === hero.url) return;
+
+    if (pendingHeroFade) {
+      clearTimeout(pendingHeroFade);
+      pendingHeroFade = null;
+    }
+
+    heroImg.classList.add('is-fading');
+
+    pendingHeroFade = setTimeout(() => {
+      pendingHeroFade = null;
+
+      const reveal = () => {
+        heroImg.src = hero.url;
+        heroImg.alt = hero.alt;
+        // Webflow's srcset/sizes point at the original static image's size
+        // variants — the fetched hero has no equivalents, so drop them
+        // rather than let a stale srcset candidate win over the new src.
+        heroImg.removeAttribute('srcset');
+        heroImg.removeAttribute('sizes');
+        requestAnimationFrame(() => {
+          heroImg.classList.remove('is-fading');
+        });
+      };
+
+      const preload = new Image();
+      preload.onload = reveal;
+      preload.onerror = reveal;
+      preload.src = hero.url;
+    }, HERO_FADE_MS);
   }
 
   function activateTab(tabId) {

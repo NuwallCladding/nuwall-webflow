@@ -1732,6 +1732,14 @@ margin: 0 !important;
   opacity: 0;
 }
 
+/* Series hero image crossfade — matches #product-preview's timing/pattern */
+.series-hero-bg-image img {
+  transition: opacity 0.3s ease;
+}
+.series-hero-bg-image img.is-fading {
+  opacity: 0;
+}
+
 /* Swatch grid transitions */
 .colour-item {
   cursor: pointer;
