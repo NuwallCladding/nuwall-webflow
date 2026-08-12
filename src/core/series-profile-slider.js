@@ -192,8 +192,18 @@ export function initSeriesProfileSlider() {
         heroImg.removeAttribute('srcset');
         heroImg.removeAttribute('sizes');
         if (heroWrapper) heroWrapper.style.display = 'block';
+
+        // Double rAF: on the very first reveal the wrapper is starting from
+        // display:none, and a single rAF isn't reliably enough frames for
+        // the browser to commit that display change as its own paint before
+        // the opacity transition starts — it just snaps straight to
+        // opacity:1 instead of fading. Two nested frames guarantee the
+        // display:block commits first (matches the same trick in
+        // finishes-tabs.js).
         requestAnimationFrame(() => {
-          heroImg.classList.remove('is-fading');
+          requestAnimationFrame(() => {
+            heroImg.classList.remove('is-fading');
+          });
         });
       };
 
