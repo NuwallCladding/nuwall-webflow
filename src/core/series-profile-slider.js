@@ -14,35 +14,50 @@ const SPECS_FIELD = 'profile---specifications';
 // fetched so the hero can render immediately on load instead of waiting on
 // the cms.nuwall.co.nz → Webflow round trip the rest of the profile data
 // (gallery/specs/video) still needs.
-const HERO_IMAGES = [
-  { slug: 'ss400', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b509703e682c57900a2_SS_400.001_3000x2000px.webp' },
-  { slug: 'ss-random', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b5eb19262e6732fee79_SS_Random.001_3000x2000px.webp' },
-  { slug: 'mono-random', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b6781e06df31ab27acf_Mono_Random.001_3000x2000px.webp' },
-  { slug: 'e-random', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b733be5eaaccb3dd192_E_Random.001_2000x2000px.webp' },
-  { slug: 'e-70-130', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b7c0acae936c0dcf64e_E_70-130.001_3000x2000px.webp' },
-  { slug: 'e-200', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b833be5eaaccb3dd85b_E_200.001_3000x2000px.webp' },
-  { slug: 'e-100', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b8b692671e90ffba193_E_100.001_3000x2000px.webp' },
-  { slug: 'louvre-150', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b91128fb0c4eaca6528_Louvre_150.001_3000x2000px.webp' },
-  { slug: 'louvre-120', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b967f08f9f5fbdc1e71_Louvre_120.001_3000x2000px.webp' },
-  { slug: 'louvre-60', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b9ca5d669f3e1107d3c_Louvre_60.001_3000x2000px.webp' },
-  { slug: 'ss200', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573ba2b4a42289ef34ecb0_SS_200.001_3000x2000px.webp' },
-  { slug: 'shiplap-150', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573ba83484344c65f0e881_Shiplap_150.001_3000x2000px.webp' },
-  { slug: 'classique', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bb1973f330684236464_Classique_136.001_3000x2000px.webp' },
-  { slug: 'v-130', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bb983a3bb2c95e30a3d_V_130.001_3000x2000px.webp' },
-  { slug: 'n-200', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bc0ad567f21e0b34afa_N_200.001_3000x2000px.webp' },
-  { slug: 'zz200', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bc761f12e9fdd525ee4_ZZ_200.001_3000x2000px.webp' },
-  { slug: 'ripple-200', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bd381e06df31ab2ad2c_Ripple_200.001_3000x2000pxx.webp' },
-  { slug: 'ripple-150', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bdb3be5eaaccb3e0a45_Ripple_150.001_3000x2000px.webp' },
-  { slug: 'barcode', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573be602674aac1dacc4d0_Barcode_200.001_3000x2000px.webp' },
-  { slug: 'aero-200s', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bed0acae936c0dd2c7c_Aero_200S.001_3000x2000px.webp' },
-  { slug: 'aero-200', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bf59225b88585539262_Aero_200.001_3000x2000px.webp' },
-  { slug: 'aero-115', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c0005a7994eb5b305d5_Aero_115.001_3000x2000px.webp' },
-  { slug: 'mono-200', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c0d02674aac1dacd25e_Mono_200.001_3000x2000px.webp' },
-  { slug: 'aero-70', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c18b4a42289ef353b0b_Aero_70.001_3000x2000px.webp' },
-  { slug: 'mono-400', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c20136987eae98a1b45_Mono_400.001_3000x2000px.webp' },
-  { slug: 'mono-250', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c2705a7994eb5b3300a_Mono_250.001_3000x2000px.webp' },
-  { slug: 'mono-100', heroBg: 'https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c2e5653459f9f512f23_Mono_100.001_3000x2000px.webp' },
+const heroImages = [
+  { slug: "e-100",        series: "e-series",       heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b8b692671e90ffba193_E_100.001_3000x2000px.webp" },
+  { slug: "mono-200",     series: "mono",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c0d02674aac1dacd25e_Mono_200.001_3000x2000px.webp" },
+  { slug: "aero-115",     series: "aero",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c0005a7994eb5b305d5_Aero_115.001_3000x2000px.webp" },
+  { slug: "ripple-150",   series: "iconic",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bdb3be5eaaccb3e0a45_Ripple_150.001_3000x2000px.webp" },
+  { slug: "n-200",        series: "contemporary",   heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bc0ad567f21e0b34afa_N_200.001_3000x2000px.webp" },
+  { slug: "classique",    series: "legacy",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bb1973f330684236464_Classique_136.001_3000x2000px.webp" },
+  { slug: "louvre-120",   series: "louvre",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b967f08f9f5fbdc1e71_Louvre_120.001_3000x2000px.webp" },
+  { slug: "e-200",        series: "e-series",       heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b833be5eaaccb3dd85b_E_200.001_3000x2000px.webp" },
+  { slug: "mono-250",     series: "mono",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c2705a7994eb5b3300a_Mono_250.001_3000x2000px.webp" },
+  { slug: "aero-200",     series: "aero",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bf59225b88585539262_Aero_200.001_3000x2000px.webp" },
+  { slug: "ripple-200",   series: "iconic",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bd381e06df31ab2ad2c_Ripple_200.001_3000x2000pxx.webp" },
+  { slug: "louvre-150",   series: "louvre",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b91128fb0c4eaca6528_Louvre_150.001_3000x2000px.webp" },
+  { slug: "e-70-130",     series: "e-series",       heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b7c0acae936c0dcf64e_E_70-130.001_3000x2000px.webp" },
+  { slug: "mono-random",  series: "random",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b6781e06df31ab27acf_Mono_Random.001_3000x2000px.webp" },
+  { slug: "ss-random",    series: "random",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b5eb19262e6732fee79_SS_Random.001_3000x2000px.webp" },
+  { slug: "ss400",        series: "standing-seam",  heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b509703e682c57900a2_SS_400.001_3000x2000px.webp" },
+  { slug: "mono-400",     series: "mono",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c20136987eae98a1b45_Mono_400.001_3000x2000px.webp" },
+  { slug: "aero-200s",    series: "aero",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bed0acae936c0dd2c7c_Aero_200S.001_3000x2000px.webp" },
+  { slug: "barcode",      series: "iconic",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573be602674aac1dacc4d0_Barcode_200.001_3000x2000px.webp" },
+  { slug: "e-random",     series: "random",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b733be5eaaccb3dd192_E_Random.001_2000x2000px.webp" },
+  { slug: "louvre-60",    series: "louvre",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573b9ca5d669f3e1107d3c_Louvre_60.001_3000x2000px.webp" },
+  { slug: "ss200",        series: "standing-seam",  heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573ba2b4a42289ef34ecb0_SS_200.001_3000x2000px.webp" },
+  { slug: "shiplap-150",  series: "legacy",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573ba83484344c65f0e881_Shiplap_150.001_3000x2000px.webp" },
+  { slug: "v-130",        series: "contemporary",   heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bb983a3bb2c95e30a3d_V_130.001_3000x2000px.webp" },
+  { slug: "zz200",        series: "iconic",         heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573bc761f12e9fdd525ee4_ZZ_200.001_3000x2000px.webp" },
+  { slug: "aero-70",      series: "aero",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c18b4a42289ef353b0b_Aero_70.001_3000x2000px.webp" },
+  { slug: "mono-100",     series: "mono",           heroBg: "https://cdn.prod.website-files.com/6a443bd52368da66b3b96414/6a573c2e5653459f9f512f23_Mono_100.001_3000x2000px.webp" },
 ];
+
+const SERIES_BASE_PATH = '/series/';
+
+function currentSeriesSlug() {
+  return window.location.pathname.replace(SERIES_BASE_PATH, '').replace(/\/$/, '');
+}
+
+// Falls back to the first heroImages entry belonging to the current series
+// (array order, `series` trimmed defensively in case of stray whitespace)
+// when a profile slug has no direct match — covers landing on the series
+// page with no ?profile= picking out a specific tab.
+function firstHeroForSeries(seriesSlug) {
+  const match = heroImages.find((h) => (h.series || '').trim() === seriesSlug);
+  return match ? { url: match.heroBg, alt: '' } : null;
+}
 
 const PLAY_SVG =
   '<svg width="68" height="68" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -77,8 +92,8 @@ export function initSeriesProfileSlider() {
   // Keyed by profile slug (= data-tab / data-tab-content / data-profile-slug,
   // all the same value across this markup) so activateTab() can look up the
   // hero image for whichever tab just became active. Seeded synchronously
-  // from HERO_IMAGES — no fetch to wait on.
-  const heroImagesBySlug = new Map(HERO_IMAGES.map((h) => [h.slug, { url: h.heroBg, alt: '' }]));
+  // from heroImages — no fetch to wait on.
+  const heroImagesBySlug = new Map(heroImages.map((h) => [h.slug, { url: h.heroBg, alt: '' }]));
   const HERO_FADE_MS = 300; // matches .series-hero-bg-image img's opacity transition in site.scss
   let pendingHeroFade = null;
 
@@ -189,7 +204,7 @@ export function initSeriesProfileSlider() {
   // before fading back in (otherwise the fade-in would start over
   // blank/undecoded pixels and read as a flash).
   function updateHeroImage(tabId) {
-    const hero = heroImagesBySlug.get(tabId);
+    const hero = heroImagesBySlug.get(tabId) || firstHeroForSeries(currentSeriesSlug());
     if (!hero) return;
     const heroImg = document.querySelector('.series-hero-bg-image img');
     if (!heroImg) return;
