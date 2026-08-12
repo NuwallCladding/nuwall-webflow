@@ -189,7 +189,7 @@ export function initSeriesProfileSlider() {
             'frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" ' +
             'allowfullscreen style="width:100%;height:100%;"></iframe>' +
             '<div class="series-profile-video-poster" ' +
-            'style="position:absolute;inset:0;background:#2A2D2B;opacity:1;transition:opacity 250ms ease;pointer-events:none;"></div>' +
+            'style="position:absolute;inset:0;background:#fff;opacity:1;transition:opacity 250ms ease;pointer-events:none;"></div>' +
             '</div>';
           mainWrapper.appendChild(videoSlide);
           wireVimeoPoster(videoSlide.querySelector('iframe'), videoSlide.querySelector('.series-profile-video-poster'));
