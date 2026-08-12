@@ -6,12 +6,10 @@
 import { withButtonSpinner } from '../utils/button-spinner.js';
 import { openWorkingSpecPreview } from './working-spec-links.js';
 import { initAccordion, ICON_PLUS } from './accordion.js';
+import { cms } from '../utils/cms-client.js';
 
-const API = {
-  url: 'https://cms.nuwall.co.nz/api/resources',
-  zipUrl: 'https://cms.nuwall.co.nz/api/resources/download-zip',
-  key: 'nk_99b79c6d5168840d0b11a35e1953d2c1b5f38c6d0b6970cbaf0e69abfe8424ff',
-};
+const RESOURCES_PATH = '/resources';
+const RESOURCES_ZIP_PATH = '/resources/download-zip';
 
 const INSTALLATION_TYPE_OPTIONS = [
   { label: 'Vertical Over Cavity', value: 'vertical-over-cavity' },
@@ -136,7 +134,7 @@ export function initResourceViewer(options = {}) {
   }
 
   function downloadWithApiKey(url, baseName) {
-    return fetch(url, { headers: { 'x-api-key': API.key } })
+    return cms.fetchRaw(url)
       .then((res) => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const filename = filenameFromResponse(res, baseName);
@@ -161,7 +159,7 @@ export function initResourceViewer(options = {}) {
   // the raw blob UUID instead.
   function previewWithApiKey(url, baseName) {
     const win = window.open('', '_blank');
-    return fetch(url, { headers: { 'x-api-key': API.key } })
+    return cms.fetchRaw(url)
       .then((res) => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const filename = filenameFromResponse(res, baseName);
@@ -185,11 +183,7 @@ export function initResourceViewer(options = {}) {
   }
 
   function downloadZipWithApiKey(ids) {
-    return fetch(API.zipUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': API.key },
-      body: JSON.stringify({ ids }),
-    })
+    return cms.postRaw(RESOURCES_ZIP_PATH, { ids })
       .then((res) => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const filename = filenameFromResponse(res, 'nuwall-resources');
@@ -726,16 +720,12 @@ export function initResourceViewer(options = {}) {
 
   const profileSeries = options.profileSeries || (wrapper && wrapper.getAttribute('data-profile-series')) || '';
 
-  let url = API.url + '?limit=0&sort=resourceType';
+  let url = RESOURCES_PATH + '?limit=0&sort=resourceType';
   if (profileSeries) {
     url += '&where[profileSeries.title][equals]=' + encodeURIComponent(profileSeries);
   }
 
-  fetch(url, { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
-    .then((res) => {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    })
+  cms.get(url)
     .then((data) => {
       state.allResources = data.docs || [];
 

@@ -1,10 +1,11 @@
 // Series prev/next navigation: fetches the full profile-series collection
-// directly from the Webflow CMS API, resolves the current page's slug from
-// the URL, and populates the prev/next series links (plus the standalone
-// "up next" promo image) with that neighbour's data.
-const API_TOKEN = '07d6fd5ce4c6826dd884b8440e82daca813a03efe206d1025439fcbe036d5c24';
-const WORKER_URL = 'https://api.webflow.com/v2/collections/';
-const SERIES_COLLECTION_ID = '6a443bd52368da66b3b9658a';
+// via the cms.nuwall.co.nz proxy (direct browser calls to the Webflow API
+// hit CORS), resolves the current page's slug from the URL, and populates
+// the prev/next series links (plus the standalone "up next" promo image)
+// with that neighbour's data.
+import { cms } from '../utils/cms-client.js';
+
+const SERIES_PATH = '/profile-series/webflow/series';
 const SERIES_BASE_PATH = '/series/';
 
 export function initSeriesNavigation() {
@@ -12,12 +13,7 @@ export function initSeriesNavigation() {
   const nextBtn = document.querySelector('.next-series-link-wrapper');
   if (!prevBtn && !nextBtn) return;
 
-  fetch(WORKER_URL + SERIES_COLLECTION_ID + '/items/', {
-    headers: {
-      'Authorization': `Bearer ${API_TOKEN}`
-    }
-  })
-    .then((res) => res.json())
+  cms.get(SERIES_PATH)
     .then((data) => {
       const items = data.items;
       const slugs = items.map((i) => i.fieldData.slug);

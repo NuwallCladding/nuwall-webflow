@@ -5,12 +5,10 @@
 // whole library. No library is selected on load, so the grid stays empty
 // until the user picks one from the library filter.
 import { withButtonSpinner } from '../utils/button-spinner.js';
+import { cms } from '../utils/cms-client.js';
 
-const API = {
-  url: 'https://cms.nuwall.co.nz/api/technical-collections',
-  zipUrl: 'https://cms.nuwall.co.nz/api/technical-collections/download-zip',
-  key: 'nk_99b79c6d5168840d0b11a35e1953d2c1b5f38c6d0b6970cbaf0e69abfe8424ff',
-};
+const COLLECTIONS_PATH = '/technical-collections';
+const COLLECTIONS_ZIP_PATH = '/technical-collections/download-zip';
 
 export function initDrawingsViewer() {
   const grid = document.querySelector('.cad-lib-grid');
@@ -101,7 +99,7 @@ export function initDrawingsViewer() {
   }
 
   function downloadWithApiKey(url, baseName) {
-    return fetch(url, { headers: { 'x-api-key': API.key } })
+    return cms.fetchRaw(url)
       .then((res) => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const filename = filenameFromResponse(res, baseName);
@@ -120,11 +118,7 @@ export function initDrawingsViewer() {
   }
 
   function downloadZipWithApiKey(ids, format) {
-    return fetch(API.zipUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': API.key },
-      body: JSON.stringify({ ids, format }),
-    })
+    return cms.postRaw(COLLECTIONS_ZIP_PATH, { ids, format })
       .then((res) => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const filename = filenameFromResponse(res, 'nuwall-drawings');
@@ -680,11 +674,7 @@ export function initDrawingsViewer() {
   const clearFilterBtn = document.querySelector('.clear-filter-btn');
   if (clearFilterBtn) clearFilterBtn.style.display = 'none';
 
-  fetch(API.url, { headers: { 'Content-Type': 'application/json', 'x-api-key': API.key } })
-    .then((res) => {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    })
+  cms.get(COLLECTIONS_PATH)
     .then((data) => {
       state.allLibraries = data.docs || [];
 

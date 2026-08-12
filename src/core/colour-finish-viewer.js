@@ -2,10 +2,7 @@
 // series' colours from the CMS, filters them into a grid by finish type
 // (powdercoating texture / sublimated / anodised), and swaps the product
 // preview image + active swatch as the user browses.
-const API = {
-  url: 'https://cms.nuwall.co.nz/api',
-  key: 'nk_99b79c6d5168840d0b11a35e1953d2c1b5f38c6d0b6970cbaf0e69abfe8424ff',
-};
+import { cms } from '../utils/cms-client.js';
 
 const POWDERCOATING = ['Smooth', 'Textured', 'Metallic Textured'];
 const TEXTURE_TO_FINISH_TYPE = {
@@ -381,13 +378,7 @@ export function initColourFinishViewer() {
     if (e.key === 'ArrowLeft') goPrev();
   });
 
-  fetch(API.url + '/profile-series/' + SERIES_ID + '/colours', {
-    headers: { 'Content-Type': 'application/json', 'x-api-key': API.key },
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    })
+  cms.get('/profile-series/' + SERIES_ID + '/colours')
     .then((colours) => {
       state.allColours = byLoadPriority(Array.isArray(colours) ? colours : colours.docs || []);
       // Swatches queue first (in load-priority order) so they don't wait

@@ -1,13 +1,12 @@
 // Series profile slider: for each `.series-slider-item` tab pane, fetches
 // that profile's gallery/spec images + optional interactive video from the
-// Worker API and builds the main + thumbnail Swiper carousels, plus a
-// separate spec-image Swiper. Tab clicks swap which pane (and its sliders)
-// is visible.
+// cms.nuwall.co.nz proxy (direct browser calls to the Webflow API hit CORS)
+// and builds the main + thumbnail Swiper carousels, plus a separate
+// spec-image Swiper. Tab clicks swap which pane (and its sliders) is visible.
 import Swiper from 'swiper/bundle';
+import { cms } from '../utils/cms-client.js';
 
-const API_TOKEN = '07d6fd5ce4c6826dd884b8440e82daca813a03efe206d1025439fcbe036d5c24';
-const WORKER_URL = 'https://api.webflow.com/v2/collections/';
-const COLLECTION_ID = '6a443bd52368da66b3b96448';
+const PROFILE_PATH = '/profile-series/webflow/profile';
 const IMAGE_FIELD = 'profile---gallery';
 const SPECS_FIELD = 'profile---specifications';
 const HERO_IMAGE_FIELD = 'hero---product-image';
@@ -56,12 +55,7 @@ export function initSeriesProfileSlider() {
       if (!slug) return;
 
       try {
-        const res = await fetch(WORKER_URL + COLLECTION_ID + '/items?slug=' + slug, {
-          headers: {
-            'Authorization': `Bearer ${API_TOKEN}`
-          }
-        });
-        const data = await res.json();
+        const data = await cms.get(PROFILE_PATH, { params: { slug } });
         const profile = data.items?.[0];
         const fieldData = profile?.fieldData;
         if (!fieldData) return;
