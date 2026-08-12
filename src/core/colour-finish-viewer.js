@@ -3,6 +3,7 @@
 // (powdercoating texture / sublimated / anodised), and swaps the product
 // preview image + active swatch as the user browses.
 import { cms } from '../utils/cms-client.js';
+import { queueImageLoad } from '../utils/image-load-queue.js';
 
 const POWDERCOATING = ['Smooth', 'Textured', 'Metallic Textured'];
 const TEXTURE_TO_FINISH_TYPE = {
@@ -28,74 +29,6 @@ function byLoadPriority(colours) {
     const bi = FINISH_LOAD_PRIORITY.indexOf(b.finishType);
     return (ai === -1 ? FINISH_LOAD_PRIORITY.length : ai) - (bi === -1 ? FINISH_LOAD_PRIORITY.length : bi);
   });
-}
-
-// A colour page can easily have 60-100+ swatch + main-preview images to
-// warm on load. Firing them all at once regularly 429s the CMS, so every
-// image load goes through this small queue instead: capped concurrency,
-// plus a minimum gap between request starts, plus a couple of backed-off
-// retries for any request the CMS still rate-limits.
-const MAX_CONCURRENT_IMAGE_LOADS = 4;
-const MIN_LOAD_START_GAP_MS = 90;
-const LOAD_RETRY_BACKOFF_MS = 800;
-const LOAD_MAX_RETRIES = 2;
-
-let activeImageLoads = 0;
-let lastLoadStartAt = 0;
-let queueTimer = null;
-const imageLoadQueue = [];
-
-function pumpImageQueue() {
-  if (queueTimer) return;
-
-  while (activeImageLoads < MAX_CONCURRENT_IMAGE_LOADS && imageLoadQueue.length) {
-    const wait = MIN_LOAD_START_GAP_MS - (Date.now() - lastLoadStartAt);
-    if (wait > 0) {
-      queueTimer = setTimeout(() => {
-        queueTimer = null;
-        pumpImageQueue();
-      }, wait);
-      return;
-    }
-
-    const task = imageLoadQueue.shift();
-    activeImageLoads++;
-    lastLoadStartAt = Date.now();
-    task();
-  }
-}
-
-// Queues `src` to load through a shared `<img>` (created immediately and
-// returned so callers can cache/inspect it before it's actually started),
-// with capped concurrency and retry-with-backoff on failure (e.g. a 429).
-function queueImageLoad(src, { onload, onerror } = {}) {
-  const img = new Image();
-  if (!src) return img;
-
-  function attempt(retriesLeft) {
-    img.onload = () => {
-      activeImageLoads--;
-      onload?.(img);
-      pumpImageQueue();
-    };
-    img.onerror = () => {
-      activeImageLoads--;
-      if (retriesLeft > 0) {
-        setTimeout(() => {
-          imageLoadQueue.push(() => attempt(retriesLeft - 1));
-          pumpImageQueue();
-        }, LOAD_RETRY_BACKOFF_MS);
-      } else {
-        onerror?.(img);
-      }
-      pumpImageQueue();
-    };
-    img.src = src;
-  }
-
-  imageLoadQueue.push(() => attempt(LOAD_MAX_RETRIES));
-  pumpImageQueue();
-  return img;
 }
 
 export function initColourFinishViewer() {

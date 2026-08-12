@@ -6,6 +6,7 @@
 // until the user picks one from the library filter.
 import { withButtonSpinner } from '../utils/button-spinner.js';
 import { cms } from '../utils/cms-client.js';
+import { queueImageLoad } from '../utils/image-load-queue.js';
 
 const COLLECTIONS_PATH = '/technical-collections';
 const COLLECTIONS_ZIP_PATH = '/technical-collections/download-zip';
@@ -40,8 +41,6 @@ export function initDrawingsViewer() {
     filters: { library: '', category: '', search: '' },
     matchedIds: [],
     selectedIds: new Set(),
-    visibleCount: 20,
-    itemsPerPage: 20,
   };
 
   // No library selected yet — grey out category filter and search until
@@ -61,16 +60,28 @@ export function initDrawingsViewer() {
     return library.code || String(library.id);
   }
 
-  // Lazily swap in real thumbnail URLs as cards scroll into view, so we
-  // don't fire dozens of image requests at once (the API rejects bursts).
+  // Lazily swap in real thumbnail URLs as cards scroll into view — a card
+  // doesn't request its thumbnail until it's actually near the viewport,
+  // and even then the request goes through the shared queue (capped
+  // concurrency + retry-with-backoff) rather than firing directly, so
+  // scrolling past/into several cards at once can't burst the CMS with
+  // simultaneous requests.
   function lazyLoadImages() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const img = entry.target;
-          img.src = img.dataset.src;
+          const src = img.dataset.src;
           delete img.dataset.src;
           observer.unobserve(img);
+          // The queue loads `src` through its own <img> first; assigning it
+          // to the visible <img> afterward is then just a cache hit, not a
+          // second request. On exhausted retries, fall back to setting it
+          // directly rather than leaving the thumbnail stuck on placeholder.
+          queueImageLoad(src, {
+            onload: () => { img.src = src; },
+            onerror: () => { img.src = src; },
+          });
         }
       });
     }, { rootMargin: '200px' });
@@ -165,10 +176,6 @@ export function initDrawingsViewer() {
       label.textContent = text;
       label.classList.add('is-selected');
     }
-  }
-
-  function resetPage() {
-    state.visibleCount = state.itemsPerPage;
   }
 
   // Category filter and search are meaningless before a library is picked
@@ -369,20 +376,10 @@ export function initDrawingsViewer() {
         card.getAttribute('data-name').indexOf(f.search.toLowerCase()) !== -1 ||
         card.getAttribute('data-code').indexOf(f.search.toLowerCase()) !== -1;
 
-      card.style.display = 'none';
-      if (matchLibrary && matchCategory && matchSearch) {
-        matched.push(card);
-      }
+      const show = matchLibrary && matchCategory && matchSearch;
+      card.style.display = show ? '' : 'none';
+      if (show) matched.push(card);
     });
-
-    matched.forEach((card, i) => {
-      card.style.display = i < state.visibleCount ? '' : 'none';
-    });
-
-    const viewMoreWrapper = document.querySelector('.cad-lib-content-view-more');
-    if (viewMoreWrapper) {
-      viewMoreWrapper.style.display = matched.length > state.visibleCount ? '' : 'none';
-    }
 
     state.matchedIds = matched.map((card) => card.getAttribute('data-id'));
 
@@ -519,7 +516,6 @@ export function initDrawingsViewer() {
         nav.appendChild(link);
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          resetPage();
           state.filters.library = libraryValue(library);
           updateDropdownLabel(link, library.name);
           updateLibraryDetails(library);
@@ -562,7 +558,6 @@ export function initDrawingsViewer() {
       nav.appendChild(link);
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        resetPage();
         state.filters.category = label;
         updateDropdownLabel(link, label);
         applyFilters();
@@ -573,7 +568,6 @@ export function initDrawingsViewer() {
     document.querySelectorAll('[fs-cmsfilter-field="category"][fs-cmsfilter-reset]').forEach((link) => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        resetPage();
         state.filters.category = '';
         updateDropdownLabel(link, 'All');
         applyFilters();
@@ -588,7 +582,6 @@ export function initDrawingsViewer() {
     const q = (value || '').trim();
     // Only treat as an active search at 2+ chars; otherwise clear it.
     state.filters.search = q.length >= SEARCH_MIN_CHARS ? q : '';
-    resetPage();
     applyFilters();
   }
 
@@ -640,7 +633,6 @@ export function initDrawingsViewer() {
     if (!btn) return;
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      resetPage();
       state.filters.category = '';
       state.filters.search = '';
       if (searchInput) searchInput.value = '';
@@ -648,16 +640,6 @@ export function initDrawingsViewer() {
         categoryPlaceholder.textContent = categoryPlaceholderDefaultText;
         categoryPlaceholder.classList.remove('is-selected');
       }
-      applyFilters();
-    });
-  }
-
-  function wireViewMore() {
-    const btn = document.querySelector('.button-view-more');
-    if (!btn) return;
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      state.visibleCount += state.itemsPerPage;
       applyFilters();
     });
   }
@@ -674,6 +656,11 @@ export function initDrawingsViewer() {
   const clearFilterBtn = document.querySelector('.clear-filter-btn');
   if (clearFilterBtn) clearFilterBtn.style.display = 'none';
 
+  // Pagination removed — a library maxes out at 20 drawings, so every
+  // match always renders and "view more" never has anything to do.
+  const viewMoreWrapper = document.querySelector('.cad-lib-content-view-more');
+  if (viewMoreWrapper) viewMoreWrapper.style.display = 'none';
+
   cms.get(COLLECTIONS_PATH)
     .then((data) => {
       state.allLibraries = data.docs || [];
@@ -683,7 +670,6 @@ export function initDrawingsViewer() {
       safe('library', wireLibrary);
       safe('category', wireCategory);
       safe('search', wireSearch);
-      safe('view-more', wireViewMore);
       safe('clear-filters', wireClearFilters);
       safe('selection-download', wireSelectionDownload);
       safe('clear-selection', wireClearSelection);
