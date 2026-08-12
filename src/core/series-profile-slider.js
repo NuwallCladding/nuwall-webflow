@@ -191,7 +191,7 @@ export function initSeriesProfileSlider() {
         // rather than let a stale srcset candidate win over the new src.
         heroImg.removeAttribute('srcset');
         heroImg.removeAttribute('sizes');
-        if (heroWrapper) heroWrapper.style.display = '';
+        if (heroWrapper) heroWrapper.style.display = 'block';
         requestAnimationFrame(() => {
           heroImg.classList.remove('is-fading');
         });
