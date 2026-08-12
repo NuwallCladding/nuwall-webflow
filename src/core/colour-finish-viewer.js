@@ -3,7 +3,7 @@
 // (powdercoating texture / sublimated / anodised), and swaps the product
 // preview image + active swatch as the user browses.
 import { cms } from '../utils/cms-client.js';
-import { queueImageLoad } from '../utils/image-load-queue.js';
+import { queueImageLoad, loadImageInto } from '../utils/image-load-queue.js';
 
 const POWDERCOATING = ['Smooth', 'Textured', 'Metallic Textured'];
 const TEXTURE_TO_FINISH_TYPE = {
@@ -101,23 +101,6 @@ export function initColourFinishViewer() {
     return true;
   }
 
-  // Loads a swatch thumbnail off-DOM first, so the visible <img> only ever
-  // gets a fully-decoded `src` — it fades in over the base-colour fill
-  // instead of popping in blockily mid-download. Queued (not fired
-  // directly) so every colour's swatch doesn't hit the CMS at once.
-  function loadSwatchImage(imgEl, src) {
-    if (!src) return;
-    queueImageLoad(src, {
-      onload: () => {
-        imgEl.src = src;
-        requestAnimationFrame(() => imgEl.classList.add('is-loaded'));
-      },
-      onerror: () => {
-        imgEl.src = src;
-      },
-    });
-  }
-
   function makeItem(c) {
     const item = template.cloneNode(true);
     item.classList.remove('nw-template');
@@ -131,9 +114,7 @@ export function initColourFinishViewer() {
 
     const img = item.querySelector('.colour-item-image > img');
     if (img) {
-      img.removeAttribute('src');
-      img.alt = c.title || '';
-      loadSwatchImage(img, c.swatchImage?.webURL || c.swatchImage?.url || '');
+      loadImageInto(img, c.swatchImage?.webURL || c.swatchImage?.url || '', { alt: c.title || '' });
     }
 
     const h6 = item.querySelector('.colour-name-wrapper > h6');

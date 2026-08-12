@@ -66,3 +66,31 @@ export function queueImageLoad(src, { onload, onerror } = {}) {
   pumpImageQueue();
   return img;
 }
+
+// Loads `src` through the shared queue directly into a visible `<img>`,
+// keeping it blank (no `src`, no `alt`) until the real image has actually
+// finished loading off-DOM, then reveals it by setting src/alt and adding
+// `is-loaded` — pair with CSS that fades opacity in on that class (see
+// `.colour-item-image > img.is-loaded` / `.cad-lib-item-image img.is-loaded`
+// in site.scss). Without this, an `<img>` left pointing at a placeholder
+// (or with `alt` already set) while its real src waits its turn in the
+// queue can show a broken-image icon and/or the alt text during fast
+// scrolling — this guarantees there's nothing to see until the image is
+// actually ready.
+export function loadImageInto(imgEl, src, { alt = '' } = {}) {
+  if (!imgEl || !src) return;
+
+  imgEl.removeAttribute('src');
+  imgEl.alt = '';
+  imgEl.classList.remove('is-loaded');
+
+  const reveal = () => {
+    imgEl.src = src;
+    imgEl.alt = alt;
+    requestAnimationFrame(() => {
+      imgEl.classList.add('is-loaded');
+    });
+  };
+
+  queueImageLoad(src, { onload: reveal, onerror: reveal });
+}

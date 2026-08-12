@@ -6,7 +6,7 @@
 // until the user picks one from the library filter.
 import { withButtonSpinner } from '../utils/button-spinner.js';
 import { cms } from '../utils/cms-client.js';
-import { queueImageLoad } from '../utils/image-load-queue.js';
+import { loadImageInto } from '../utils/image-load-queue.js';
 
 const COLLECTIONS_PATH = '/technical-collections';
 const COLLECTIONS_ZIP_PATH = '/technical-collections/download-zip';
@@ -65,23 +65,20 @@ export function initDrawingsViewer() {
   // and even then the request goes through the shared queue (capped
   // concurrency + retry-with-backoff) rather than firing directly, so
   // scrolling past/into several cards at once can't burst the CMS with
-  // simultaneous requests.
+  // simultaneous requests. loadImageInto keeps each <img> blank until its
+  // thumbnail has actually loaded, then fades it in — no placeholder icon
+  // or alt text flash while it waits its turn in the queue.
   function lazyLoadImages() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const img = entry.target;
           const src = img.dataset.src;
+          const alt = img.dataset.alt || '';
           delete img.dataset.src;
+          delete img.dataset.alt;
           observer.unobserve(img);
-          // The queue loads `src` through its own <img> first; assigning it
-          // to the visible <img> afterward is then just a cache hit, not a
-          // second request. On exhausted retries, fall back to setting it
-          // directly rather than leaving the thumbnail stuck on placeholder.
-          queueImageLoad(src, {
-            onload: () => { img.src = src; },
-            onerror: () => { img.src = src; },
-          });
+          loadImageInto(img, src, { alt });
         }
       });
     }, { rootMargin: '200px' });
@@ -215,9 +212,11 @@ export function initDrawingsViewer() {
     const img = card.querySelector('.cad-lib-item-image img');
     if (img) {
       const realSrc = doc.imageFile && (doc.imageFile.thumbnailURL || doc.imageFile.url);
-      img.src = 'https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg';
+      // Left blank (no src/alt) until it scrolls into view and loads —
+      // see lazyLoadImages(). Avoids showing a placeholder icon/alt text
+      // that then snaps to the real thumbnail with no transition.
       if (realSrc) img.dataset.src = realSrc;
-      img.alt = doc.name || '';
+      img.dataset.alt = doc.name || '';
     }
 
     const nameEl = card.querySelector('.drawing-name');

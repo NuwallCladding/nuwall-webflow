@@ -1770,6 +1770,16 @@ margin: 0 !important;
   opacity: 1;
 }
 
+/* Drawing thumbnail: same blank-until-loaded fade-in, via
+   src/utils/image-load-queue.js's loadImageInto(). */
+.cad-lib-item-image img {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.cad-lib-item-image img.is-loaded {
+  opacity: 1;
+}
+
 .colour-item .colour-item-content .colour-name-wrapper h6 {
   overflow-wrap: break-word !important;
   white-space: normal !important;
