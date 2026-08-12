@@ -5,10 +5,12 @@
 // is visible.
 import Swiper from 'swiper/bundle';
 
-const WORKER_URL = 'https://floral-cake-11c6.lezliem.workers.dev';
-const COLLECTION_ID = '69bb35ffbadbe7831efb4785';
+const API_TOKEN = '07d6fd5ce4c6826dd884b8440e82daca813a03efe206d1025439fcbe036d5c24';
+const WORKER_URL = 'https://api.webflow.com/v2/collections/';
+const COLLECTION_ID = '6a443bd52368da66b3b96448';
 const IMAGE_FIELD = 'profile---gallery';
 const SPECS_FIELD = 'profile---specifications';
+const HERO_IMAGE_FIELD = 'hero---product-image';
 
 const PLAY_SVG =
   '<svg width="68" height="68" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -40,6 +42,11 @@ export function initSeriesProfileSlider() {
   const tabDetails = document.querySelectorAll('.series-tab-details');
   if (!sliderItems.length) return;
 
+  // Keyed by profile slug (= data-tab / data-tab-content / data-profile-slug,
+  // all the same value across this markup) so activateTab() can look up the
+  // hero image for whichever tab just became active.
+  const heroImagesBySlug = new Map();
+
   // ── 1. Fetch & inject images ──
   async function loadProfileImages() {
     const fetchPromises = Array.from(sliderItems).map(async (item) => {
@@ -47,7 +54,11 @@ export function initSeriesProfileSlider() {
       if (!slug) return;
 
       try {
-        const res = await fetch(WORKER_URL + '?collectionId=' + COLLECTION_ID + '&slug=' + slug);
+        const res = await fetch(WORKER_URL + COLLECTION_ID + '/items?slug=' + slug, {
+          headers: {
+            'Authorization': `Bearer ${API_TOKEN}`
+          }
+        });
         const data = await res.json();
         const profile = data.items?.[0];
         const fieldData = profile?.fieldData;
@@ -56,6 +67,10 @@ export function initSeriesProfileSlider() {
         const galleryImages = fieldData[IMAGE_FIELD] || [];
         const specImages = fieldData[SPECS_FIELD] || [];
         const videoUrl = fieldData['interactive-video-url'] || null;
+        const heroImage = fieldData[HERO_IMAGE_FIELD] || null;
+        if (heroImage && heroImage.url) {
+          heroImagesBySlug.set(slug, { url: heroImage.url, alt: heroImage.alt || '' });
+        }
 
         const mainWrapper = item.querySelector('.swiper .swiper-wrapper');
         const thumbWrapper = item.querySelector('.swiper-thumb-wrapper');
@@ -141,10 +156,26 @@ export function initSeriesProfileSlider() {
   }
 
   // ── 2. Tab switching ──
+  function updateHeroImage(tabId) {
+    const hero = heroImagesBySlug.get(tabId);
+    if (!hero) return;
+    const heroImg = document.querySelector('.series-hero-bg-image img');
+    if (!heroImg) return;
+    heroImg.src = hero.url;
+    heroImg.alt = hero.alt;
+    // Webflow's srcset/sizes point at the original static image's size
+    // variants — the fetched hero has no equivalents, so drop them rather
+    // than let a stale srcset candidate win over the new src.
+    heroImg.removeAttribute('srcset');
+    heroImg.removeAttribute('sizes');
+  }
+
   function activateTab(tabId) {
     tabItems.forEach((tab) => {
       tab.classList.toggle('is-active', tab.getAttribute('data-tab') === tabId);
     });
+
+    updateHeroImage(tabId);
 
     document.querySelectorAll('.tab-content').forEach((el) => {
       el.classList.toggle('is-active', el.getAttribute('data-tab-content') === tabId);
@@ -256,8 +287,8 @@ export function initSeriesProfileSlider() {
 
   // A profile link on the profiles page (profile-switcher.js) tags its href
   // with ?profile=<slug> so this page knows which tab to land on — only
-  // honoured if it actually matches a tab, then stripped from the URL so it
-  // doesn't linger on refresh/share.
+  // honoured if it actually matches a tab. Left in the URL (not stripped)
+  // so the link stays shareable/refreshable at that profile.
   function profileTabIdFromURL() {
     const params = new URLSearchParams(window.location.search);
     const profileParam = params.get('profile');
@@ -266,19 +297,12 @@ export function initSeriesProfileSlider() {
     return match ? profileParam : null;
   }
 
-  function clearProfileQueryParam() {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('profile');
-    history.replaceState(null, '', url.pathname + url.search + url.hash);
-  }
-
   // ── Boot sequence ──
   loadProfileImages().then(() => {
     const urlTabId = profileTabIdFromURL();
     const firstTabId = tabItems[0]?.getAttribute('data-tab');
     const initialTabId = urlTabId || firstTabId;
     if (initialTabId) activateTab(initialTabId);
-    if (urlTabId) clearProfileQueryParam();
     initSwipers();
   });
 }
